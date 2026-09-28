@@ -248,8 +248,8 @@ Add tip-vortex helices, the power-flow pulses to a village whose lights scale wi
 - [x] `betzDisk.ts`: violet emissive disk with a fresnel edge; blades fade out (500 ms)
 - [x] Control-panel swap: wind slider → **Wake speed b** slider (0–1) while in Ideal mode
 - [x] Smoke lines use a = (1 − b)/2; for a > 0.45 show "turbulent wake state" noise and text
-- [x] Card 3 shows Cp(b); chart forced to the Betz tab (the store switches; the chart itself is Phase 10)
-- [x] Sweet-spot detection |b − 1/3| < 0.015 → disk pulse, toast once per entry (chart ring: Phase 10)
+- [x] Card 3 shows Cp(b); chart forced to the Betz tab
+- [x] Sweet-spot detection |b − 1/3| < 0.015 → disk pulse, chart ring, toast once per entry
 - [x] Exit → the loss waterfall row appears for 6 s (§3.6); also shown while in Ideal-disk mode, every step computed in `physics/losses.ts`
 
 **Done when:** a new user finds the 59.3 % peak by dragging within ~10 s, and the explanation text and chart agree at every b.
@@ -258,13 +258,13 @@ Add tip-vortex helices, the power-flow pulses to a village whose lights scale wi
 
 ## Phase 10: Charts  (≈ 2.5 h)
 
-- [ ] `charts/chartBase.ts`: DPR-aware canvas, axes, grid, mono tick labels, theme colors, redraw-on-change
-- [ ] `powerCurve.ts`: steady curve, Betz max, power in the wind, region bands (wait / catch / spill / hide), live dot + 6 s trail
-- [ ] `cpTsr.ts`: Cp(λ) at current pitch and 0°, Betz line 0.593, live dot
-- [ ] `alongBlade.ts`: α(r) live (per-element BEM ≤ 10 Hz), ghost at pitch 0, stall band 10–11°
-- [ ] `betzCurve.ts`: ½(1 + b)(1 − b²) with peak marker
-- [ ] `waterfall.ts`: 59.3 → 58.1 → 55.3 → 51.7 → 47.1 → 44.5
-- [ ] Tabs + key C; `environment/screens.ts` renders the stream-tube and Cp–λ plots onto the two wall monitors at 5 Hz
+- [x] `charts/chartBase.ts`: DPR-aware canvas, axes, grid, mono tick labels, theme colors, redraw-on-change
+- [x] `powerCurve.ts`: steady curve, Betz max, power in the wind, region bands (wait / catch / spill / hide), live dot + 6 s trail
+- [x] `cpTsr.ts`: Cp(λ) at current pitch and 0°, Betz line 0.593, live dot
+- [x] `alongBlade.ts`: α(r) live (per-element BEM ≤ 10 Hz), ghost at pitch 0, stall band 10–11°
+- [x] `betzCurve.ts`: ½(1 + b)(1 − b²) with peak marker
+- [x] `waterfall.ts`: 59.3 → 58.1 → 55.3 → 51.7 → 47.1 → 44.5 (done in Phase 9, computed: 59.3 → 58.1 → 55.2 → 51.4 → 47.1 → 44.4)
+- [x] Tabs + key C; `environment/screens.ts` renders the stream-tube and Cp–λ plots onto the two wall monitors at 5 Hz
 
 **Done when:** the chart dot moves continuously with the sim (dynamic, not steady), and the wall screens mirror the state.
 

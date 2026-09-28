@@ -8,6 +8,7 @@ import { fmtPct } from '@/physics/format';
 import type { SimSnapshot } from '@/physics/types';
 import type { Store } from '@/state/store';
 import type { UiState } from '@/state/uiState';
+import { createChartCard } from '@/ui/chartCard';
 import { createControlPanel } from '@/ui/controlPanel';
 import { createExplainer } from '@/ui/explainer';
 import { createHelp } from '@/ui/help';
@@ -49,7 +50,9 @@ export function createUi(root: HTMLElement, store: Store<UiState>, actions: UiAc
   const stats = createStatCards();
   const explainer = createExplainer();
   const waterfall = createWaterfall();
-  layout.left.append(stats.el, explainer.el, waterfall.el);
+  const chart = createChartCard(store);
+  layout.left.append(stats.el, explainer.el, chart.el, waterfall.el);
+  window.addEventListener('resize', () => chart.resize(Math.min(window.devicePixelRatio || 1, 2)));
 
   // Ideal disk forces the Betz chart (§3.6, §10) and brings back the previous tab on exit;
   // the loss waterfall stays for 6 s after leaving
@@ -91,6 +94,7 @@ export function createUi(root: HTMLElement, store: Store<UiState>, actions: UiAc
       stats.update({ s, rotorMode: ui.rotorMode, wakeB: ui.wakeB, gusts: ui.gusts }, dt);
       explainer.update({ s, wakeB: ui.wakeB, pitchLockDeg, tripPeakOmegaRad }, dt);
       panel.update(s);
+      chart.update(s, ui, dt, performance.now() / 1000);
       waterfallLeftS = Math.max(waterfallLeftS - dt, 0);
       waterfall.setVisible(ui.rotorMode === 'ideal' || waterfallLeftS > 0);
 

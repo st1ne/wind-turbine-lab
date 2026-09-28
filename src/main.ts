@@ -29,6 +29,7 @@ import { createPowerFlow } from '@/scene/fx/powerFlow';
 import { createSmokeLines } from '@/scene/fx/smokeLines';
 import { createTipVortices } from '@/scene/fx/tipVortices';
 import { createSmokeRake } from '@/scene/environment/smokeRake';
+import { createScreens } from '@/scene/environment/screens';
 import { createVillage } from '@/scene/environment/village';
 import { createSimBridge } from '@/state/simBridge';
 import { createStore } from '@/state/store';
@@ -83,6 +84,7 @@ const fx: SceneModule[] = [
   createSmokeLines(flow),
   createTipVortices(flow),
   createBetzDisk(turbine),
+  createScreens(flow),
   village,
   createPowerFlow(turbine, village),
   createLoadsViz(turbine),

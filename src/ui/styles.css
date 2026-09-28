@@ -993,3 +993,52 @@ kbd {
 .wf-arrow {
   color: var(--text-dim);
 }
+
+/* ---------- chart card (§3.6) ---------- */
+
+.chart-card {
+  padding: 10px 12px 10px;
+}
+
+.chart-card .panel-head {
+  margin-bottom: 6px;
+}
+
+.chart-tabs {
+  display: flex;
+  gap: 2px;
+}
+
+.chart-tab {
+  border: 0;
+  background: none;
+  padding: 4px 7px;
+  border-radius: 6px;
+  font: 500 11px/1 var(--font-ui);
+  color: var(--text);
+  opacity: 0.6;
+  cursor: pointer;
+  transition:
+    opacity 0.2s var(--ease-out),
+    background 0.2s var(--ease-out);
+}
+
+.chart-tab:hover:not(:disabled) {
+  opacity: 1;
+}
+
+.chart-tab.on {
+  background: #f4f6fb;
+  color: #0b0f1a;
+  opacity: 1;
+  font-weight: 600;
+}
+
+.chart-tab:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.chart-canvas {
+  display: block;
+}

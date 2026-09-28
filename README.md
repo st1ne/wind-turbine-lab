@@ -66,8 +66,8 @@ src/
 
 ## Status
 
-Phases 0–9 done (scaffold, physics core, scene shell, turbine exterior, nacelle internals, UI
-shell, wiring and time, Whole / Cutaway / Exploded views, Follow modes and FX, Betz disk mode). Modules not built yet throw `not implemented`.
+Phases 0–10 done (scaffold, physics core, scene shell, turbine exterior, nacelle internals, UI
+shell, wiring and time, Whole / Cutaway / Exploded views, Follow modes and FX, Betz disk mode, charts). Modules not built yet throw `not implemented`.
 
 Dev helpers (dev server only): backtick toggles the stats/snapshot overlay; `window.__lab`
 exposes sim, bridge (`jumpTo(V)`), store, scene and camera. All hotkeys from TECH_SPEC §3.9 are live; press H for the
