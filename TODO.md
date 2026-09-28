@@ -200,12 +200,12 @@ No UI framework. Accessible markup (buttons, range inputs, aria attributes). Eng
 
 ## Phase 7: Views: Whole / Cutaway / Exploded  (≈ 3 h)
 
-- [ ] `scene/views.ts`: state machine with animated transitions (§8)
-- [ ] Cutaway: a clipping plane through the shaft axis on the camera side; animate the plane constant 0.9 s; clip the nacelle shell, spinner, hub and tower top 12 m
-- [ ] Stencil caps with a hatched dark fill and a 2 px amber edge (fallback: BackSide flat cap)
-- [ ] Exploded: components offset along the shaft axis with 60 ms stagger; the shell lifts +4 m and fades to 0.15; the rotor moves +6 m forward; dashed guide lines
-- [ ] Labels for internals appear only in Cutaway/Exploded
-- [ ] Hotkey V cycles; URL param `view`
+- [x] `scene/views.ts`: state machine with animated transitions (§8)
+- [x] Cutaway: a clipping plane through the shaft axis on the camera side; animate the plane constant 0.9 s; clip the nacelle shell, spinner, hub and tower top 12 m
+- [x] Stencil caps with a hatched dark fill and a 2 px amber edge (stencil works everywhere tested, so no BackSide fallback was built)
+- [x] Exploded: components offset along the shaft axis with 60 ms stagger; the shell lifts +4 m and fades to 0.15; the rotor moves +6 m forward; dashed guide lines
+- [ ] Labels for internals appear only in Cutaway/Exploded (moved to Phase 12, with the label system)
+- [~] Hotkey V cycles (done in Phase 5); URL param `view` lands with the URL state in Phase 13
 
 **Done when:** switching views never pops, caps have no gaps from any angle, and the rotor and gears keep running during transitions.
 

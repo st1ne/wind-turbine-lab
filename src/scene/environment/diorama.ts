@@ -140,8 +140,8 @@ export function createDiorama(): SceneModule<Group> {
     g.scale(1, 0.6 + rnd() * 0.3, 0.8 + rnd() * 0.4);
     g.rotateY(rnd() * 6);
     g.translate(x, heightAt(x, z) + s * 0.25, z);
-    rocks.push(g.toNonIndexed());
-    g.dispose();
+    // polyhedron geometries are already non-indexed, as mergeGeometries needs here
+    rocks.push(g);
   }
   const rockGeo = mergeGeometries(rocks);
   rocks.forEach((g) => g.dispose());

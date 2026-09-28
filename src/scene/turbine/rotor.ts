@@ -35,6 +35,8 @@ export interface Rotor {
   readonly object3d: Group;
   readonly spin: Group;
   readonly hub: Hub;
+  /** cast hub body inside the spinner (clipped and capped in Cutaway) */
+  readonly hubBody: Mesh;
   /** per blade: the pitch group (blade tip anchor is at y = R in it) */
   readonly pitchGroups: readonly Group[];
   readonly bladeMaterials: readonly MeshStandardMaterial[];
@@ -86,6 +88,7 @@ function createHubInternals() {
   bodyGeo.scale(1.25, 1, 1);
   const castMat = makeMaterial({ color: '#6b737f', roughness: 0.6, metalness: 0.6 }, 'rotor');
   const body = new Mesh(bodyGeo, castMat);
+  body.name = 'hub-body';
   body.position.x = 0.15;
   const gearMat = makeMaterial({ color: PALETTE.brass, roughness: 0.3, metalness: 0.9 }, 'rotor');
   const raceMat = makeMaterial({ color: PALETTE.steel, roughness: 0.35, metalness: 0.8 }, 'rotor');
@@ -197,6 +200,7 @@ export function createRotor(): Rotor {
     object3d: group,
     spin,
     hub,
+    hubBody: internals.body,
     pitchGroups,
     bladeMaterials: [bladeMat, bandMat],
     set(psiRad, pitchDeg, tipDeflectionM) {

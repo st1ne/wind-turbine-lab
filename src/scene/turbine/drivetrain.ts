@@ -29,6 +29,7 @@ import {
   MeshBasicMaterial,
   Object3D,
   TorusGeometry,
+  Vector3,
   type BufferGeometry,
   type Material,
 } from 'three';
@@ -110,6 +111,28 @@ function blurTexture(): ReturnType<typeof createCanvasTexture> {
   return tex;
 }
 
+/**
+ * A part the Exploded view moves (§8): `offset` in the part's parent frame (m), `order` sets
+ * its 60 ms stagger slot, `guide` whether it gets a dashed line from its home.
+ */
+export interface ExplodePart {
+  readonly obj: Object3D;
+  readonly offset: Vector3;
+  readonly order: number;
+  readonly guide: boolean;
+}
+
+/** Exploded offsets along the shaft axis (+x downwind), m. */
+export const EXPLODE_M = {
+  mainShaft: -2.5,
+  mainBearing: -1.2,
+  stage23: 1.1,
+  hss: 2.4,
+  generator: 4.4,
+  converter: 4.5,
+  yawDrop: -2.2,
+} as const;
+
 interface Spinning {
   obj: Object3D;
   ratio: number;
@@ -123,7 +146,12 @@ export interface Drivetrain {
   /** parts in the level nacelle frame */
   readonly nacelleGroup: Group;
   /** label anchors (shaft frame or nacelle frame objects) */
-  readonly anchors: Record<'mainShaft' | 'gearbox' | 'brake' | 'generator' | 'converter' | 'yaw', Object3D>;
+  readonly anchors: Record<
+    'mainShaft' | 'gearbox' | 'brake' | 'generator' | 'converter' | 'yaw',
+    Object3D
+  >;
+  /** parts spread along the shaft in the Exploded view */
+  readonly explode: readonly ExplodePart[];
   update(s: SimSnapshot, dt: number): void;
   setVisible(v: boolean): void;
   dispose(): void;
@@ -145,20 +173,40 @@ export function createDrivetrain(): Drivetrain {
     return m;
   };
 
-  const steel = mat(makeMaterial({ color: PALETTE.steel, roughness: 0.35, metalness: 0.8 }, 'power'));
-  const darkSteel = mat(makeMaterial({ color: '#4a525e', roughness: 0.45, metalness: 0.75 }, 'structure'));
-  const brass = mat(makeMaterial({ color: PALETTE.brass, roughness: 0.3, metalness: 0.9 }, 'power'));
-  const housing = mat(makeMaterial({ color: '#39414d', roughness: 0.55, metalness: 0.6 }, 'structure'));
+  const steel = mat(
+    makeMaterial({ color: PALETTE.steel, roughness: 0.35, metalness: 0.8 }, 'power'),
+  );
+  const darkSteel = mat(
+    makeMaterial({ color: '#4a525e', roughness: 0.45, metalness: 0.75 }, 'structure'),
+  );
+  const brass = mat(
+    makeMaterial({ color: PALETTE.brass, roughness: 0.3, metalness: 0.9 }, 'power'),
+  );
+  const housing = mat(
+    makeMaterial({ color: '#39414d', roughness: 0.55, metalness: 0.6 }, 'structure'),
+  );
   const paint = mat(makeMaterial({ color: '#2e6f8f', roughness: 0.5, metalness: 0.3 }, 'power'));
   const copper = mat(
     makeMaterial(
-      { color: '#b8733e', roughness: 0.35, metalness: 0.85, emissive: new Color(THEME.power), emissiveIntensity: 0 },
+      {
+        color: '#b8733e',
+        roughness: 0.35,
+        metalness: 0.85,
+        emissive: new Color(THEME.power),
+        emissiveIntensity: 0,
+      },
       'power',
     ),
   );
   const brakeMat = mat(
     makeMaterial(
-      { color: '#9aa1ab', roughness: 0.3, metalness: 0.9, emissive: new Color(THEME.alarm), emissiveIntensity: 0 },
+      {
+        color: '#9aa1ab',
+        roughness: 0.3,
+        metalness: 0.9,
+        emissive: new Color(THEME.alarm),
+        emissiveIntensity: 0,
+      },
       'power',
     ),
   );
@@ -287,7 +335,9 @@ export function createDrivetrain(): Drivetrain {
   const inter = new Group();
   inter.name = 'intermediate-shaft';
   inter.position.set(DT.stage2, S2_OFFSET, 0);
-  const s2PinionGeo = g(createGearGeometry({ teeth: TEETH.s2Pinion, moduleM: M2, faceWidthM: 0.26 }));
+  const s2PinionGeo = g(
+    createGearGeometry({ teeth: TEETH.s2Pinion, moduleM: M2, faceWidthM: 0.26 }),
+  );
   inter.add(new Mesh(s2PinionGeo, steel));
   const interAxle = g(new CylinderGeometry(0.09, 0.09, DT.stage3 - DT.stage2 + 0.5, 12));
   interAxle.rotateZ(Math.PI / 2);
@@ -307,7 +357,9 @@ export function createDrivetrain(): Drivetrain {
   const hss = new Group();
   hss.name = 'hss';
   hss.position.set(DT.stage3, HSS_Y, 0);
-  const s3PinionGeo = g(createGearGeometry({ teeth: TEETH.s3Pinion, moduleM: M3, faceWidthM: 0.22 }));
+  const s3PinionGeo = g(
+    createGearGeometry({ teeth: TEETH.s3Pinion, moduleM: M3, faceWidthM: 0.22 }),
+  );
   hss.add(new Mesh(s3PinionGeo, steel));
   const hssLen = DT.genFrom - DT.stage3 + 0.3;
   const hssGeo = g(new CylinderGeometry(0.12, 0.12, hssLen, 16));
@@ -336,8 +388,16 @@ export function createDrivetrain(): Drivetrain {
   addSpinning(hss, HSS_RATIO);
 
   // blur discs (not spinning themselves; they fade with speed)
-  const blurDiscs: { mesh: Mesh; ratio: number }[] = [];
-  const addBlur = (parent: Object3D, x: number, y: number, r: number, ratio: number): void => {
+  const blurDiscs: { mesh: Mesh; ratio: number; explodeX: number; order: number }[] = [];
+  const addBlur = (
+    parent: Object3D,
+    x: number,
+    y: number,
+    r: number,
+    ratio: number,
+    explodeX = 0,
+    order = 0,
+  ): void => {
     const d = g(new CircleGeometry(r, 48));
     d.rotateY(Math.PI / 2);
     const m = new Mesh(d, blurMat.clone());
@@ -345,17 +405,46 @@ export function createDrivetrain(): Drivetrain {
     m.position.set(x, y, 0);
     m.renderOrder = 2;
     parent.add(m);
-    blurDiscs.push({ mesh: m, ratio });
+    blurDiscs.push({ mesh: m, ratio, explodeX, order });
   };
-  addBlur(shaftGroup, DT.stage2 + 0.14, S2_OFFSET, pitchRadius(TEETH.s2Pinion, M2) + M2 * 1.5, INTERMEDIATE_RATIO);
-  addBlur(shaftGroup, DT.stage3 - 0.12, S2_OFFSET, pitchRadius(TEETH.s3Gear, M3) + M3 * 1.5, INTERMEDIATE_RATIO);
-  addBlur(shaftGroup, DT.stage3 + 0.13, HSS_Y, pitchRadius(TEETH.s3Pinion, M3) + M3 * 1.5, HSS_RATIO);
-  addBlur(shaftGroup, DT.brake + 0.05, HSS_Y, 0.62, HSS_RATIO);
-  addBlur(shaftGroup, DT.coupling + 0.25, HSS_Y, 0.36, HSS_RATIO);
+  const s23 = EXPLODE_M.stage23;
+  const hx = EXPLODE_M.hss;
+  addBlur(
+    shaftGroup,
+    DT.stage2 + 0.14,
+    S2_OFFSET,
+    pitchRadius(TEETH.s2Pinion, M2) + M2 * 1.5,
+    INTERMEDIATE_RATIO,
+    s23,
+    3,
+  );
+  addBlur(
+    shaftGroup,
+    DT.stage3 - 0.12,
+    S2_OFFSET,
+    pitchRadius(TEETH.s3Gear, M3) + M3 * 1.5,
+    INTERMEDIATE_RATIO,
+    s23,
+    3,
+  );
+  addBlur(
+    shaftGroup,
+    DT.stage3 + 0.13,
+    HSS_Y,
+    pitchRadius(TEETH.s3Pinion, M3) + M3 * 1.5,
+    HSS_RATIO,
+    hx,
+    4,
+  );
+  addBlur(shaftGroup, DT.brake + 0.05, HSS_Y, 0.62, HSS_RATIO, hx, 4);
+  addBlur(shaftGroup, DT.coupling + 0.25, HSS_Y, 0.36, HSS_RATIO, hx, 4);
 
   // brake caliper (fixed) straddling the top of the disc
   const caliperGeo = g(new BoxGeometry(0.3, 0.32, 0.36));
-  const caliper = new Mesh(caliperGeo, mat(makeMaterial({ color: '#b3342c', roughness: 0.5 }, 'power')));
+  const caliper = new Mesh(
+    caliperGeo,
+    mat(makeMaterial({ color: '#b3342c', roughness: 0.5 }, 'power')),
+  );
   caliper.position.set(DT.brake, HSS_Y + 0.52, 0);
   shaftGroup.add(caliper);
 
@@ -411,12 +500,12 @@ export function createDrivetrain(): Drivetrain {
 
   // ---------------------------------------------------------------- nacelle frame parts
   const bedParts: BufferGeometry[] = [];
-  const bedBase = new BoxGeometry(18.5, 0.3, 3.6);
-  bedBase.translate(6.6, TOWER_HEIGHT_M + 0.7, 0);
+  const bedBase = new BoxGeometry(17.2, 0.3, 3.6);
+  bedBase.translate(6.3, TOWER_HEIGHT_M + 0.7, 0);
   bedParts.push(bedBase);
   for (const z of [-1.7, 1.7]) {
-    const rail = new BoxGeometry(18.5, 0.7, 0.25);
-    rail.translate(6.6, TOWER_HEIGHT_M + 1.05, z);
+    const rail = new BoxGeometry(17.2, 0.7, 0.25);
+    rail.translate(6.3, TOWER_HEIGHT_M + 1.05, z);
     bedParts.push(rail);
   }
   const bedGeo = g(mergeGeometries(bedParts));
@@ -477,6 +566,25 @@ export function createDrivetrain(): Drivetrain {
 
   let blinkT = 0;
 
+  const along = (x: number): Vector3 => new Vector3(x, 0, 0);
+  const explode: ExplodePart[] = [
+    { obj: lss, offset: along(EXPLODE_M.mainShaft), order: 1, guide: true },
+    { obj: bearing, offset: along(EXPLODE_M.mainBearing), order: 2, guide: true },
+    { obj: sunShaft, offset: along(EXPLODE_M.stage23), order: 3, guide: true },
+    { obj: inter, offset: along(EXPLODE_M.stage23), order: 3, guide: false },
+    { obj: hss, offset: along(EXPLODE_M.hss), order: 4, guide: true },
+    { obj: caliper, offset: along(EXPLODE_M.hss), order: 4, guide: false },
+    { obj: gen, offset: along(EXPLODE_M.generator), order: 5, guide: true },
+    { obj: converter, offset: along(EXPLODE_M.converter), order: 6, guide: true },
+    { obj: yaw, offset: new Vector3(0, EXPLODE_M.yawDrop, 0), order: 6, guide: false },
+    ...blurDiscs.map((b) => ({
+      obj: b.mesh,
+      offset: along(b.explodeX),
+      order: b.order,
+      guide: false,
+    })),
+  ];
+
   return {
     shaftGroup,
     nacelleGroup,
@@ -488,6 +596,7 @@ export function createDrivetrain(): Drivetrain {
       converter,
       yaw: yawAnchor,
     },
+    explode,
     update(s, dt) {
       const omega = s.omega;
       for (const sp of spinning) {

@@ -6,14 +6,7 @@
  * Deflections come from physics/loads.ts; Loads mode exaggerates the tower ×25 and the blade
  * flap ×2 (§6.8, §9). Everything else follows the sim snapshot directly.
  */
-import {
-  BackSide,
-  BoxGeometry,
-  FrontSide,
-  Group,
-  Mesh,
-  type MeshStandardMaterial,
-} from 'three';
+import { BoxGeometry, Group, Mesh } from 'three';
 import { HUB_HEIGHT_M, MODEL_SCALE, OVERHANG_M, SHAFT_TILT_DEG } from '@/config/turbine';
 import { bladeTipDeflectionM, towerTopDeflectionM } from '@/physics/loads';
 import { makeMaterial } from '@/scene/materials';
@@ -81,22 +74,6 @@ export function createTurbine(): Turbine {
 
   let towerExag = 1;
   let flapExag = 1;
-  let lastView: string | null = null;
-
-  function applyView(view: string): void {
-    // Internals are culled in Whole view, not just hidden behind the shell (§5.4).
-    // Until the stencil-capped cutaway lands (Phase 7), the camera-side shell half and the
-    // spinner are simply hidden in Cutaway/Exploded.
-    const inside = view !== 'whole';
-    drivetrain.setVisible(inside);
-    rotor.setInternalsVisible(inside);
-    nacelle.halves[0].visible = !inside;
-    // show the far half from the inside: its interior wall instead of the flat split face
-    const far = nacelle.halves[1].material as MeshStandardMaterial;
-    far.side = inside ? BackSide : FrontSide;
-    far.needsUpdate = true;
-    rotor.hub.spinner.visible = !inside;
-  }
 
   return {
     object3d: root,
@@ -107,10 +84,6 @@ export function createTurbine(): Turbine {
     top,
     shaft,
     update(s, ui, dt) {
-      if (ui.view !== lastView) {
-        lastView = ui.view;
-        applyView(ui.view);
-      }
       drivetrain.update(s, dt);
       // Exaggeration eases in and out with Follow = Loads (display only, not physics).
       const loads = ui.follow === 'loads';

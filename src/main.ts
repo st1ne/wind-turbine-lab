@@ -20,6 +20,7 @@ import { createFan } from '@/scene/environment/fan';
 import { createRoom } from '@/scene/environment/room';
 import { createRuler } from '@/scene/environment/ruler';
 import { createTurbine } from '@/scene/turbine/turbine';
+import { createViews } from '@/scene/views';
 import { createSimBridge } from '@/state/simBridge';
 import { createStore } from '@/state/store';
 import { defaultUiState } from '@/state/uiState';
@@ -58,6 +59,9 @@ const modules: SceneModule[] = [
   createDiorama(),
   turbine,
 ];
+// after the turbine: views move, clip and fade the parts the turbine just animated
+const views = createViews(turbine, camera);
+modules.push(views);
 modules.forEach((m) => scene.add(m.object3d));
 
 const dev = import.meta.env.DEV ? createDevOverlay(uiRoot) : null;
@@ -83,7 +87,7 @@ const ui = createUi(uiRoot, store, {
 if (import.meta.env.DEV) {
   // handle for debugging in the browser console
   Object.assign(window, {
-    __lab: { sim, bridge, scene, camera, controls, renderer, rig, store, turbine, tweens },
+    __lab: { sim, bridge, scene, camera, controls, renderer, rig, store, turbine, views, tweens },
   });
 }
 
@@ -96,8 +100,10 @@ function resize(): void {
   post.resize(w, h, dpr);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
+  views.setResolution(w, h);
 }
 window.addEventListener('resize', resize);
+resize();
 
 let firstFrame = true;
 // Frame order (§14.4): sim fixed steps → tweens → scene → render → UI (throttled) → audio.

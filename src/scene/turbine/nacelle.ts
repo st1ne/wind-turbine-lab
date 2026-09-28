@@ -1,8 +1,8 @@
 /**
  * Nacelle exterior (TECH_SPEC §5.1, §5.4) in full-scale metres: an 18 × 6 × 6 m rounded shell
- * built as two halves split by the vertical plane through the shaft axis (so the cutaway can drop
- * one), a yaw bearing ring, a roof radiator with slats, an anemometer (cups spin ∝ V) and wind
- * vane, a red aviation light blinking at 1 Hz, and a service crane.
+ * built hollow (outer and inner skin, so the cutaway can clip and cap it), a yaw bearing ring,
+ * a roof radiator with slats, an anemometer (cups spin ∝ V) and wind vane, a red aviation light
+ * blinking at 1 Hz, and a service crane.
  * The nacelle frame has x downwind along the shaft, origin on the tower axis.
  */
 import {
@@ -22,6 +22,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { PALETTE } from '@/config/theme';
 import { NACELLE_SIZE_M, TOWER_HEIGHT_M, TOWER_TOP_DIAMETER_M } from '@/config/turbine';
 import { makeMaterial } from '@/scene/materials';
+import { flipGeometry } from '@/scene/section';
 
 export const NACELLE = {
   frontX: -2.7,
@@ -36,45 +37,74 @@ export const NACELLE = {
 
 const BEVEL = 0.8;
 const CORNER = 1.1;
+/** shell wall thickness, m (thicker than a real 30 mm GRP skin so the cut reads at 1:200) */
+export const SHELL_WALL_M = 0.3;
 
 export interface Nacelle {
   readonly object3d: Group;
-  /** the two shell halves: [+z side, −z side] */
-  readonly halves: readonly [Mesh, Mesh];
+  /** hollow shell (outer skin + inward-facing inner skin): a closed solid the cutaway can cap */
+  readonly shell: Mesh;
   /** world-space anchor objects for labels */
   readonly anchors: { anemometer: Group; light: Mesh };
   update(windMs: number, timeS: number, dt: number): void;
   dispose(): void;
 }
 
-function halfShell(side: 1 | -1): ExtrudeGeometry {
-  const hw = NACELLE_SIZE_M.width / 2 - BEVEL;
-  const hh = NACELLE_SIZE_M.height / 2 - BEVEL;
-  // Shape coordinates (u, v) = (−z, y) so that rotateY(+90°) maps extrusion → +x, u → −z.
-  const u = -side * hw;
-  // The bevel grows the outline by BEVEL on every side, so the flat inner edge starts BEVEL
-  // away from the split plane and ends up exactly on z = 0.
-  const u0 = -side * BEVEL;
+/** Rounded box along +x from frontX, centred on the shaft plane z = 0 (closed, non-indexed). */
+function roundedBox(
+  width: number,
+  height: number,
+  length: number,
+  bevel: number,
+  corner: number,
+  frontX: number,
+): ExtrudeGeometry {
+  const hw = width / 2 - bevel;
+  const hh = height / 2 - bevel;
+  const c = Math.min(corner, hw, hh);
   const s = new Shape();
-  s.moveTo(u0, -hh);
-  s.lineTo(u + (u > 0 ? -CORNER : CORNER), -hh);
-  s.quadraticCurveTo(u, -hh, u, -hh + CORNER);
-  s.lineTo(u, hh - CORNER);
-  s.quadraticCurveTo(u, hh, u + (u > 0 ? -CORNER : CORNER), hh);
-  s.lineTo(u0, hh);
-  s.closePath();
-  const depth = NACELLE_SIZE_M.length - 2 * BEVEL;
+  s.moveTo(-hw + c, -hh);
+  s.lineTo(hw - c, -hh);
+  s.quadraticCurveTo(hw, -hh, hw, -hh + c);
+  s.lineTo(hw, hh - c);
+  s.quadraticCurveTo(hw, hh, hw - c, hh);
+  s.lineTo(-hw + c, hh);
+  s.quadraticCurveTo(-hw, hh, -hw, hh - c);
+  s.lineTo(-hw, -hh + c);
+  s.quadraticCurveTo(-hw, -hh, -hw + c, -hh);
   const g = new ExtrudeGeometry(s, {
-    depth,
+    depth: length - 2 * bevel,
     bevelEnabled: true,
-    bevelThickness: BEVEL,
-    bevelSize: BEVEL,
+    bevelThickness: bevel,
+    bevelSize: bevel,
     bevelSegments: 4,
     curveSegments: 8,
   });
+  // extrusion (z) → +x; the shape's u axis → −z (symmetric, so the sign doesn't matter)
   g.rotateY(Math.PI / 2);
-  g.translate(NACELLE.frontX + BEVEL, NACELLE.centerY, 0);
+  g.translate(frontX + bevel, NACELLE.centerY, 0);
   g.computeVertexNormals();
+  return g;
+}
+
+/** Outer skin plus an inset, flipped inner skin: a closed hollow solid. */
+export function createShellGeometry(): BufferGeometry {
+  const { width, height, length } = NACELLE_SIZE_M;
+  const t = SHELL_WALL_M;
+  const outer = roundedBox(width, height, length, BEVEL, CORNER, NACELLE.frontX);
+  const inner = flipGeometry(
+    roundedBox(
+      width - 2 * t,
+      height - 2 * t,
+      length - 2 * t,
+      BEVEL - t,
+      CORNER - t,
+      NACELLE.frontX + t,
+    ),
+  );
+  const g = mergeGeometries([outer, inner]);
+  outer.dispose();
+  inner.dispose();
   return g;
 }
 
@@ -88,23 +118,13 @@ export function createNacelle(): Nacelle {
   );
   const darkMat = makeMaterial({ color: '#59616d', roughness: 0.5, metalness: 0.6 }, 'structure');
 
-  // The far half has its own material so the cutaway can render its inside (BackSide).
-  const shellMatB = makeMaterial(
-    { color: PALETTE.turbine, roughness: 0.45, metalness: 0.1 },
-    'structure',
-  );
-  const hA = halfShell(1);
-  const hB = halfShell(-1);
-  geos.push(hA, hB);
-  const halfA = new Mesh(hA, shellMat);
-  const halfB = new Mesh(hB, shellMatB);
-  halfA.name = 'nacelle-shell-front';
-  halfB.name = 'nacelle-shell-back';
-  for (const h of [halfA, halfB]) {
-    h.castShadow = true;
-    h.receiveShadow = true;
-    group.add(h);
-  }
+  const shellGeo = createShellGeometry();
+  geos.push(shellGeo);
+  const shell = new Mesh(shellGeo, shellMat);
+  shell.name = 'nacelle-shell';
+  shell.castShadow = true;
+  shell.receiveShadow = true;
+  group.add(shell);
 
   // Yaw bearing ring on the tower top.
   const yaw = new TorusGeometry(TOWER_TOP_DIAMETER_M / 2 + 0.2, 0.22, 8, 48);
@@ -205,7 +225,7 @@ export function createNacelle(): Nacelle {
 
   return {
     object3d: group,
-    halves: [halfA, halfB],
+    shell,
     anchors: { anemometer, light },
     update(windMs, timeS, dt) {
       // cups: ≈ 0.25 rev/s per m/s would strobe; cap at 3 rev/s visually
@@ -216,7 +236,6 @@ export function createNacelle(): Nacelle {
     dispose() {
       geos.forEach((g) => g.dispose());
       shellMat.dispose();
-      shellMatB.dispose();
       darkMat.dispose();
       lightMat.dispose();
     },

@@ -66,8 +66,8 @@ src/
 
 ## Status
 
-Phases 0–6 done (scaffold, physics core, scene shell, turbine exterior, nacelle internals, UI
-shell, wiring and time). Modules not built yet throw `not implemented`.
+Phases 0–7 done (scaffold, physics core, scene shell, turbine exterior, nacelle internals, UI
+shell, wiring and time, Whole / Cutaway / Exploded views). Modules not built yet throw `not implemented`.
 
 Dev helpers (dev server only): backtick toggles the stats/snapshot overlay; `window.__lab`
 exposes sim, bridge (`jumpTo(V)`), store, scene and camera. All hotkeys from TECH_SPEC §3.9 are live; press H for the
@@ -80,3 +80,8 @@ negative Cp (rotor coasting while feathering) to 0 %. The guided-tour button sho
 
 Scene deviation: the orbit minimum distance is 0.3 instead of 0.6 (§4.5) so the nacelle
 close-up can actually get close.
+
+Views (§8): the nacelle shell, spinner and top 12 m of the tower are built as closed hollow
+solids so the stencil caps show a thin wall, not a solid block; their walls (0.3 m, spinner
+0.18 m) are thicker than real (≈ 30 mm) so the cut reads at 1:200. In Exploded the spinner fades
+with the nacelle shell (0.15) so the pitch bearings stay visible; the spec only asks for the shell.

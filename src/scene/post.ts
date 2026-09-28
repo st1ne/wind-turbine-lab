@@ -1,8 +1,16 @@
 /**
  * Post chain (TECH_SPEC §4.4): RenderPass → UnrealBloomPass(0.55, 0.42, 0.82) → SMAA → OutputPass.
- * The OutputPass applies the renderer's tone mapping and sRGB conversion.
+ * The OutputPass applies the renderer's tone mapping and sRGB conversion. The scene target
+ * carries a stencil buffer for the cutaway caps.
  */
-import { Vector2, type Camera, type Scene, type WebGLRenderer } from 'three';
+import {
+  HalfFloatType,
+  Vector2,
+  WebGLRenderTarget,
+  type Camera,
+  type Scene,
+  type WebGLRenderer,
+} from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
@@ -20,8 +28,17 @@ export interface Post {
 }
 
 export function createPost(renderer: WebGLRenderer, scene: Scene, camera: Camera): Post {
-  const composer = new EffectComposer(renderer);
   const size = renderer.getSize(new Vector2());
+  const dpr = renderer.getPixelRatio();
+  // the cutaway caps need a stencil buffer in the scene render target (§8)
+  const target = new WebGLRenderTarget(size.x * dpr, size.y * dpr, {
+    type: HalfFloatType,
+    stencilBuffer: true,
+  });
+  target.texture.name = 'EffectComposer.rt1';
+  const composer = new EffectComposer(renderer, target);
+  composer.setPixelRatio(dpr);
+  composer.setSize(size.x, size.y);
   composer.addPass(new RenderPass(scene, camera));
   const bloom = new UnrealBloomPass(
     new Vector2(size.x, size.y),
