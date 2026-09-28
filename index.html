@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wind Turbine Lab: The 59 % Limit</title>
+    <meta
+      name="description"
+      content="Turn up the wind on a 5 MW turbine and watch it chase the wind, cap its power and feather its blades in a storm. Why can no rotor catch more than 59 % of the wind?"
+    />
+    <meta property="og:title" content="Wind Turbine Lab: The 59 % Limit" />
+    <meta
+      property="og:description"
+      content="An interactive 3D wind-tunnel lab: the Betz limit, pitch control and storm feathering, all from real physics."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@700;800&display=swap"
+    />
+  </head>
+  <body>
+    <canvas id="scene" role="img" aria-label="3D wind tunnel with a 5 MW wind turbine"></canvas>
+    <div id="ui-root"></div>
+    <noscript>
+      <div class="noscript">
+        <h1>Wind Turbine Lab: The 59 % Limit</h1>
+        <p>
+          No wind turbine can capture more than 16/27, about 59.3 %, of the power in the wind
+          passing through its rotor. Slow the air too little and most of it passes unused; stop it
+          entirely and nothing flows through. The optimum leaves the wake at one third of the wind
+          speed (Betz, 1920). A modern 5 MW rotor reaches about 47 %.
+        </p>
+        <p>This interactive lab needs JavaScript and WebGL.</p>
+      </div>
+    </noscript>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
