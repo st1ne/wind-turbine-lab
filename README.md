@@ -61,12 +61,17 @@ src/
 
 ## Status
 
-Phases 0–4 done (scaffold, physics core, scene shell, turbine exterior, nacelle internals). Modules not built yet throw
-`not implemented`.
+Phases 0–5 done (scaffold, physics core, scene shell, turbine exterior, nacelle internals, UI
+shell). Modules not built yet throw `not implemented`.
 
-Dev helpers (dev server only): backtick toggles the stats/snapshot overlay; ←/→ change the wind
-(Shift: ±2 m/s) and V cycles Whole/Cutaway/Exploded until the real UI lands; `window.__lab`
-exposes sim, scene and camera.
+Dev helpers (dev server only): backtick toggles the stats/snapshot overlay; `window.__lab`
+exposes sim, store, scene and camera. All hotkeys from TECH_SPEC §3.9 are live; press H for the
+list.
+
+UI notes: the TRIP text quotes the peak rotor speed seen since the trip began; the pitch-lock
+sentence only shows in RUN (every other state drives the pitch itself); CAPTURED clamps a
+negative Cp (rotor coasting while feathering) to 0 %. The guided-tour button shows a
+"coming soon" toast until Phase 13.
 
 Scene deviation: the orbit minimum distance is 0.3 instead of 0.6 (§4.5) so the nacelle
 close-up can actually get close.

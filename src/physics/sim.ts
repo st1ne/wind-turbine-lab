@@ -177,6 +177,8 @@ export function createSim(options: Partial<SimOptions> = {}): Sim {
     advance,
     initSteady,
     step(dtSim, inputs) {
+      // the regime flag follows the UI even while paused (dtSim = 0)
+      idealDisk = inputs.idealDisk;
       if (!(dtSim > 0)) return;
       accumulator += dtSim;
       let n = 0;

@@ -1,6 +1,7 @@
 /**
  * Entry point. Bootstraps sim → scene → UI (TECH_SPEC §14.3, §14.4).
- * Phases 2–3: scene shell and turbine wired to the physics sim through the fixed-step loop.
+ * The store holds uiState; the sim reads SimInputs derived from it; scene and UI read the
+ * snapshot each frame.
  */
 import './ui/styles.css';
 import { Color, FogExp2, Scene } from 'three';
@@ -19,16 +20,19 @@ import { createFan } from '@/scene/environment/fan';
 import { createRoom } from '@/scene/environment/room';
 import { createRuler } from '@/scene/environment/ruler';
 import { createTurbine } from '@/scene/turbine/turbine';
+import { createStore } from '@/state/store';
 import { defaultUiState } from '@/state/uiState';
 import { createDevOverlay } from '@/ui/devOverlay';
+import { toast } from '@/ui/toast';
+import { createUi } from '@/ui/ui';
 import { createRafLoop } from '@/util/rafLoop';
 
 const canvas = document.getElementById('scene') as HTMLCanvasElement;
 const uiRoot = document.getElementById('ui-root') as HTMLElement;
 
-const ui = defaultUiState();
+const store = createStore(defaultUiState());
 const sim = createSim();
-sim.initSteady(ui.windTarget);
+sim.initSteady(store.get().windTarget);
 
 const renderer = createRenderer(canvas);
 renderer.info.autoReset = false;
@@ -56,29 +60,47 @@ modules.forEach((m) => scene.add(m.object3d));
 
 const dev = import.meta.env.DEV ? createDevOverlay(uiRoot) : null;
 
+// uiState → sim inputs (§14.3). The sim never reads the store directly.
 const inputs: SimInputs = {
-  windTarget: ui.windTarget,
-  gusts: ui.gusts,
+  windTarget: store.get().windTarget,
+  gusts: store.get().gusts,
   pitchLockDeg: null,
-  idealDisk: false,
+  idealDisk: store.get().rotorMode === 'ideal',
 };
+store.subscribe(
+  (s) => s.windTarget,
+  (v) => (inputs.windTarget = v),
+);
+store.subscribe(
+  (s) => s.gusts,
+  (on) => (inputs.gusts = on),
+);
+store.subscribe(
+  (s) => s.rotorMode,
+  (mode) => (inputs.idealDisk = mode === 'ideal'),
+);
+// Locked freezes the pitch at its current angle as a what-if (§3.4).
+store.subscribe(
+  (s) => s.pitchLock,
+  (locked) => (inputs.pitchLockDeg = locked ? sim.snapshot().beta : null),
+);
+
+const ui = createUi(uiRoot, store, {
+  resetTrip() {
+    const { state } = sim.snapshot();
+    if (state === 'TRIP' || state === 'TRIPPED') sim.resetTrip();
+  },
+  toggleTour() {
+    // The guided tour is built in Phase 13.
+    toast('The guided tour is coming soon');
+  },
+  lockedPitchDeg: () => inputs.pitchLockDeg,
+});
 
 if (import.meta.env.DEV) {
   // handle for debugging in the browser console
   Object.assign(window, {
-    __lab: { sim, scene, camera, controls, renderer, rig, ui, inputs, turbine },
-  });
-  // Temporary dev controls until the UI lands in Phase 5: ←/→ wind, Shift for ±2 m/s.
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'v' || e.key === 'V') {
-      const views = ['whole', 'cutaway', 'exploded'] as const;
-      ui.view = views[(views.indexOf(ui.view) + 1) % views.length] ?? 'whole';
-      return;
-    }
-    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-    const step = (e.shiftKey ? 2 : 0.5) * (e.key === 'ArrowRight' ? 1 : -1);
-    ui.windTarget = Math.min(Math.max(ui.windTarget + step, 0), 35);
-    inputs.windTarget = ui.windTarget;
+    __lab: { sim, scene, camera, controls, renderer, rig, store, inputs, turbine },
   });
 }
 
@@ -94,14 +116,21 @@ function resize(): void {
 }
 window.addEventListener('resize', resize);
 
+let firstFrame = true;
 const loop = createRafLoop((dt) => {
-  if (!ui.paused) sim.step(dt * ui.timeScale, inputs);
+  const uiState = store.get();
+  sim.step(uiState.paused ? 0 : dt * uiState.timeScale, inputs);
   const snapshot = sim.snapshot();
   rig.update(dt);
-  lights.update(snapshot, ui, dt);
-  for (const m of modules) m.update(snapshot, ui, dt);
+  lights.update(snapshot, uiState, dt);
+  for (const m of modules) m.update(snapshot, uiState, dt);
   renderer.info.reset();
   post.render(dt);
+  ui.update(snapshot, dt);
   dev?.frame(dt, renderer, snapshot);
+  if (firstFrame) {
+    firstFrame = false;
+    ui.firstFrame();
+  }
 });
 loop.start();

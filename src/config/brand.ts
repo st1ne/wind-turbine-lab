@@ -5,5 +5,6 @@
 export const BRAND = {
   name: '{BRAND}',
   domain: '{BRAND domain}',
-  handle: '{HANDLE}',
+  handle: '@SolSt1ne',
+  handleUrl: 'https://x.com/SolSt1ne',
 } as const;

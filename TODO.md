@@ -161,17 +161,17 @@ windings (∝ power) and brake disc (∝ brake heat). Instanced bolts. Internals
 
 ## Phase 5: UI shell  (≈ 3 h)
 
-- [ ] `ui/layout.ts`: regions per §3.1 (left column, top-right panel, bottom chips, bottom-right share/X)
-- [ ] Title block: overline, gradient headline "THE 59 % / LIMIT", intro text (§1.1)
-- [ ] `ui/segmented.ts` and `ui/slider.ts`: reusable components (keyboard accessible, aria-pressed / aria-valuetext)
-- [ ] `ui/controlPanel.ts`: Follow, Weather presets + wind slider with in / rated / out ticks and a gradient fill, Rotor, Pitch, View, the icon row, a conditional Reset pill (§3.4)
-- [ ] `ui/statCards.ts`: 3 cards with tweened tabular numbers, sub-lines, Beaufort names (§3.3)
-- [ ] `ui/explainer.ts` + `templates.ts` ★: regime templates from §3.5, bold numbers, colored concept words, throttle 150 ms, change detection
-- [ ] `ui/hotkeys.ts`: every key in §3.9, ignored while typing
-- [ ] `ui/help.ts`: overlay with hotkeys, assumptions (1:200 scale, simplified polars, 3 s cut-out hold, homes = 0.4 kW each), references
-- [ ] `ui/toast.ts`: small top-center toasts ("Link copied", "You found the limit: 59.3 %", "TRIP: overspeed")
-- [ ] `ui/loader.ts`: spinning turbine silhouette SVG, fades out on the first rendered frame
-- [ ] `state/store.ts` + `uiState.ts`: tiny observable store (§14.3)
+- [x] `ui/layout.ts`: regions per §3.1 (left column, top-right panel, bottom chips, bottom-right share/X)
+- [x] Title block: overline, gradient headline "THE 59 % / LIMIT", intro text (§1.1)
+- [x] `ui/segmented.ts` and `ui/slider.ts`: reusable components (keyboard accessible, aria-pressed / aria-valuetext)
+- [x] `ui/controlPanel.ts`: Follow, Weather presets + wind slider with in / rated / out ticks and a gradient fill, Rotor, Pitch, View, the icon row, a conditional Reset pill (§3.4)
+- [x] `ui/statCards.ts`: 3 cards with tweened tabular numbers, sub-lines, Beaufort names (§3.3)
+- [x] `ui/explainer.ts` + `templates.ts` ★: regime templates from §3.5, bold numbers, colored concept words, throttle 150 ms, change detection
+- [x] `ui/hotkeys.ts`: every key in §3.9, ignored while typing
+- [x] `ui/help.ts`: overlay with hotkeys, assumptions (1:200 scale, simplified polars, 3 s cut-out hold, homes = 0.4 kW each), references
+- [x] `ui/toast.ts`: small top-center toasts ("Link copied", "You found the limit: 59.3 %", "TRIP: overspeed")
+- [x] `ui/loader.ts`: spinning turbine silhouette SVG, fades out on the first rendered frame
+- [x] `state/store.ts` + `uiState.ts`: tiny observable store (§14.3)
 
 **Done when:** every control changes `uiState`, the sim reacts (wind, lock, time scale, pause), the stat cards and text update live, and hotkeys work.
 

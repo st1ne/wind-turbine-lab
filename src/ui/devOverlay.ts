@@ -57,7 +57,9 @@ export function createDevOverlay(root: HTMLElement): DevOverlay {
       el.textContent =
         `${fps.toFixed(0)} fps  ${ms.toFixed(1)} ms  dpr ${renderer.getPixelRatio()}\n` +
         `draw calls ${info.calls}  triangles ${info.triangles.toLocaleString('en-US')}\n` +
-        JSON.stringify(snap, null, 1).replace(/[{}"]/g, '').replace(/\n\s*\n/g, '\n');
+        JSON.stringify(snap, null, 1)
+          .replace(/[{}"]/g, '')
+          .replace(/\n\s*\n/g, '\n');
     },
   };
 }
