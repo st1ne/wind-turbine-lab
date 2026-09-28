@@ -1,12 +1,13 @@
 /**
  * Dev-only stats overlay (TODO.md Phases 2 and 6), toggled with the backtick key:
- * fps, frame time, draw calls, triangles, and the live SimSnapshot.
+ * fps, frame time, draw calls, triangles, sim clock (time scale, pause) and the live SimSnapshot.
  */
 import type { WebGLRenderer } from 'three';
 import type { SimSnapshot } from '@/physics/types';
+import type { UiState } from '@/state/uiState';
 
 export interface DevOverlay {
-  frame(dt: number, renderer: WebGLRenderer, snapshot: SimSnapshot): void;
+  frame(dt: number, renderer: WebGLRenderer, snapshot: SimSnapshot, ui: Readonly<UiState>): void;
 }
 
 export function createDevOverlay(root: HTMLElement): DevOverlay {
@@ -41,7 +42,7 @@ export function createDevOverlay(root: HTMLElement): DevOverlay {
   let fps = 0;
   let ms = 0;
   return {
-    frame(dt, renderer, s) {
+    frame(dt, renderer, s, ui) {
       acc += dt;
       frames++;
       if (acc < 0.5) return;
@@ -57,6 +58,7 @@ export function createDevOverlay(root: HTMLElement): DevOverlay {
       el.textContent =
         `${fps.toFixed(0)} fps  ${ms.toFixed(1)} ms  dpr ${renderer.getPixelRatio()}\n` +
         `draw calls ${info.calls}  triangles ${info.triangles.toLocaleString('en-US')}\n` +
+        `sim ×${ui.timeScale}${ui.paused ? ' PAUSED' : ''}  follow ${ui.follow}  view ${ui.view}  ${ui.rotorMode}${ui.pitchLock ? ' LOCK' : ''}\n` +
         JSON.stringify(snap, null, 1)
           .replace(/[{}"]/g, '')
           .replace(/\n\s*\n/g, '\n');

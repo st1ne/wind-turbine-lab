@@ -1,6 +1,6 @@
 /**
  * Three stat cards (TECH_SPEC §3.3): WIND, POWER, CAPTURED. Mono tabular values tween over
- * 250 ms toward targets sampled at 10 Hz; text nodes are written only when the string changes.
+ * 250 ms toward targets sampled at 10 Hz (§14.4); text nodes are written only when the string changes.
  */
 import { BETZ } from '@/config/turbine';
 import { cpIdeal } from '@/physics/actuatorDisk';
@@ -9,9 +9,8 @@ import type { SimSnapshot } from '@/physics/types';
 import { beaufort } from '@/physics/wind';
 import type { RotorMode } from '@/state/uiState';
 import { h, setText } from '@/ui/dom';
+import { createThrottle, RATE_HZ } from '@/util/throttle';
 import { createTweenedNumber } from '@/util/tween';
-
-const SAMPLE_S = 0.1;
 
 export interface StatContext {
   s: SimSnapshot;
@@ -62,7 +61,7 @@ export function createStatCards(): StatCards {
   const vT = createTweenedNumber(0);
   const pT = createTweenedNumber(0);
   const cT = createTweenedNumber(0);
-  let acc = SAMPLE_S;
+  const sample = createThrottle(RATE_HZ.text);
   let first = true;
   let ideal = false;
 
@@ -70,9 +69,7 @@ export function createStatCards(): StatCards {
     el,
     update(ctx, dt) {
       const { s } = ctx;
-      acc += dt;
-      if (acc >= SAMPLE_S) {
-        acc = 0;
+      if (sample.ready(dt)) {
         ideal = ctx.rotorMode === 'ideal';
         // negative Cp (rotor driven by its inertia while feathering) captures nothing
         const capturedFraction = ideal ? cpIdeal(ctx.wakeB) : Math.max(s.cp, 0);

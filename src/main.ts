@@ -1,13 +1,13 @@
 /**
- * Entry point. Bootstraps sim → scene → UI (TECH_SPEC §14.3, §14.4).
- * The store holds uiState; the sim reads SimInputs derived from it; scene and UI read the
- * snapshot each frame.
+ * Entry point (TECH_SPEC §14.3, §14.4): store → sim → scene → UI → audio.
+ * The store holds uiState; the sim bridge derives SimInputs from it; scene, UI and audio read
+ * the immutable snapshot each frame. The scene never mutates the sim.
  */
 import './ui/styles.css';
 import { Color, FogExp2, Scene } from 'three';
 import { THEME } from '@/config/theme';
 import { createSim } from '@/physics/sim';
-import type { SimInputs } from '@/physics/types';
+import { createAudio } from '@/audio/audio';
 import { createCamera, createControls } from '@/scene/camera';
 import { createCameraRig } from '@/scene/cameraRig';
 import { createLights } from '@/scene/lights';
@@ -20,12 +20,14 @@ import { createFan } from '@/scene/environment/fan';
 import { createRoom } from '@/scene/environment/room';
 import { createRuler } from '@/scene/environment/ruler';
 import { createTurbine } from '@/scene/turbine/turbine';
+import { createSimBridge } from '@/state/simBridge';
 import { createStore } from '@/state/store';
 import { defaultUiState } from '@/state/uiState';
 import { createDevOverlay } from '@/ui/devOverlay';
 import { toast } from '@/ui/toast';
 import { createUi } from '@/ui/ui';
 import { createRafLoop } from '@/util/rafLoop';
+import { createTweens } from '@/util/tween';
 
 const canvas = document.getElementById('scene') as HTMLCanvasElement;
 const uiRoot = document.getElementById('ui-root') as HTMLElement;
@@ -60,47 +62,28 @@ modules.forEach((m) => scene.add(m.object3d));
 
 const dev = import.meta.env.DEV ? createDevOverlay(uiRoot) : null;
 
-// uiState → sim inputs (§14.3). The sim never reads the store directly.
-const inputs: SimInputs = {
-  windTarget: store.get().windTarget,
-  gusts: store.get().gusts,
-  pitchLockDeg: null,
-  idealDisk: store.get().rotorMode === 'ideal',
-};
+const bridge = createSimBridge(store, sim);
+const audio = createAudio();
 store.subscribe(
-  (s) => s.windTarget,
-  (v) => (inputs.windTarget = v),
+  (s) => s.sound,
+  (on) => audio.setEnabled(on),
 );
-store.subscribe(
-  (s) => s.gusts,
-  (on) => (inputs.gusts = on),
-);
-store.subscribe(
-  (s) => s.rotorMode,
-  (mode) => (inputs.idealDisk = mode === 'ideal'),
-);
-// Locked freezes the pitch at its current angle as a what-if (§3.4).
-store.subscribe(
-  (s) => s.pitchLock,
-  (locked) => (inputs.pitchLockDeg = locked ? sim.snapshot().beta : null),
-);
+/** one-shot UI/scene animations (§4.6); updated once per frame after the sim */
+const tweens = createTweens();
 
 const ui = createUi(uiRoot, store, {
-  resetTrip() {
-    const { state } = sim.snapshot();
-    if (state === 'TRIP' || state === 'TRIPPED') sim.resetTrip();
-  },
+  resetTrip: bridge.resetTrip,
   toggleTour() {
-    // The guided tour is built in Phase 13.
+    // The guided tour is built in Phase 13; it will call bridge.jumpTo() per step.
     toast('The guided tour is coming soon');
   },
-  lockedPitchDeg: () => inputs.pitchLockDeg,
+  lockedPitchDeg: bridge.lockedPitchDeg,
 });
 
 if (import.meta.env.DEV) {
   // handle for debugging in the browser console
   Object.assign(window, {
-    __lab: { sim, scene, camera, controls, renderer, rig, store, inputs, turbine },
+    __lab: { sim, bridge, scene, camera, controls, renderer, rig, store, turbine, tweens },
   });
 }
 
@@ -117,17 +100,20 @@ function resize(): void {
 window.addEventListener('resize', resize);
 
 let firstFrame = true;
+// Frame order (§14.4): sim fixed steps → tweens → scene → render → UI (throttled) → audio.
 const loop = createRafLoop((dt) => {
-  const uiState = store.get();
-  sim.step(uiState.paused ? 0 : dt * uiState.timeScale, inputs);
+  bridge.frame(dt);
   const snapshot = sim.snapshot();
+  const uiState = store.get();
+  tweens.update(dt);
   rig.update(dt);
   lights.update(snapshot, uiState, dt);
   for (const m of modules) m.update(snapshot, uiState, dt);
   renderer.info.reset();
   post.render(dt);
   ui.update(snapshot, dt);
-  dev?.frame(dt, renderer, snapshot);
+  audio.update(snapshot, dt);
+  dev?.frame(dt, renderer, snapshot, uiState);
   if (firstFrame) {
     firstFrame = false;
     ui.firstFrame();

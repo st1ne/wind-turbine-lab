@@ -58,14 +58,19 @@ src/
 - STARTUP connects at 90 % of the *scheduled* speed for the current wind (the reference uses 90 %
   of rated, which equals it above ≈ 10.4 m/s) so the rotor can reconnect in a light breeze.
 - Below 3 m/s (CALM) the generator torque is zero.
+- Pitch feed-forward: in RUN the pitch command is the scheduled pitch for the measured wind
+  (low-passed, τ = 1 s) plus the NREL PI, whose integral may go negative just far enough to
+  cancel the feed-forward. Without it the reference PI cannot follow the 2 m/s² preset ramp or
+  TI 0.12 gusts above ≈ 18 m/s: Storm from Rated tripped on overspeed at 18.9 m/s. Tests that
+  compare against the reference use `REFERENCE_SIM` (no holds, no ramp, no feed-forward).
 
 ## Status
 
-Phases 0–5 done (scaffold, physics core, scene shell, turbine exterior, nacelle internals, UI
-shell). Modules not built yet throw `not implemented`.
+Phases 0–6 done (scaffold, physics core, scene shell, turbine exterior, nacelle internals, UI
+shell, wiring and time). Modules not built yet throw `not implemented`.
 
 Dev helpers (dev server only): backtick toggles the stats/snapshot overlay; `window.__lab`
-exposes sim, store, scene and camera. All hotkeys from TECH_SPEC §3.9 are live; press H for the
+exposes sim, bridge (`jumpTo(V)`), store, scene and camera. All hotkeys from TECH_SPEC §3.9 are live; press H for the
 list.
 
 UI notes: the TRIP text quotes the peak rotor speed seen since the trip began; the pitch-lock

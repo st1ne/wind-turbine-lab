@@ -21,6 +21,12 @@ export const PITCH_RATE_DEG_S: Record<SupervisorState, number> = {
   STARTUP: 2,
 };
 
+/**
+ * Pitch feed-forward (app only, not in the reference): the scheduled pitch for the measured
+ * wind, low-passed with this time constant (anemometer / wind-speed estimator), s.
+ */
+export const PITCH_FF_TAU_S = 1;
+
 /** fixed simulation step, s (§6.11) */
 export const SIM_DT_S = 1 / 120;
 export const MAX_SUBSTEPS = 40;

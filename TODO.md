@@ -188,11 +188,11 @@ No UI framework. Accessible markup (buttons, range inputs, aria attributes). Eng
 
 ## Phase 6: Wiring and time  (≈ 1.5 h)
 
-- [ ] `main.ts`: create store → sim → scene → UI → audio stub; subscribe the UI to the store; the scene reads snapshot + uiState each frame
-- [ ] Time scale ×1/×4/×10, pause, the V̄ ramp limiter on presets
-- [ ] `initSteady(V)` on load and on tour jumps / URL restore
-- [ ] Throttles: text 10 Hz, charts 30 Hz, labels every frame (projection), label occlusion every 6th frame
-- [ ] Dev overlay: live snapshot JSON (backtick key)
+- [x] `main.ts`: create store → sim → scene → UI → audio stub; subscribe the UI to the store; the scene reads snapshot + uiState each frame
+- [x] Time scale ×1/×4/×10, pause, the V̄ ramp limiter on presets
+- [x] `initSteady(V)` on load and on tour jumps / URL restore
+- [x] Throttles: text 10 Hz, charts 30 Hz (`util/throttle.ts`); labels every frame (projection) and occlusion every 6th frame land with the labels in Phase 12
+- [x] Dev overlay: live snapshot JSON (backtick key)
 
 **Done when:** Storm preset from Rated at ×1 goes RUN → SHUTDOWN → PARKED in ≈ 30 s sim time, matching the §7.5 table within tolerance, and the UI text follows every state.
 

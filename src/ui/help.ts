@@ -51,6 +51,7 @@ function assumptions(): string[] {
     'The rotor is the NREL 5 MW reference turbine, solved with steady blade-element momentum theory (Prandtl tip/hub loss, Buhl high-induction correction) and a one-degree-of-freedom drivetrain.',
     'Airfoil polars are simplified (linear lift plus Viterna post-stall), tuned to match the published rotor within about 2 %.',
     `Real turbines cut out on a 10-minute mean wind. Here cut-out needs ${fmtMs(V_CUT_OUT, 0)} held for ${CUT_OUT_HOLD_S} s, and restart needs under ${fmtMs(V_RESTART, 0)} held for ${RESTART_HOLD_S} s.`,
+    'The pitch controller is the NREL baseline PI plus a feed-forward of the scheduled pitch for the measured wind, as modern turbines use; the PI alone would trip on overspeed in fast gusts.',
     `Weather presets ramp the mean wind at up to ${fixed(WIND_RAMP_M_S2, 0)} m/s per second so storms build visibly.`,
     `Homes powered = power ÷ ${fixed(HOME_POWER_W / 1000, 1)} kW, the average EU household use (about 3.5 MWh a year).`,
   ];

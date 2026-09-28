@@ -7,15 +7,14 @@
  *   region 2.5 (ω_g ≥ VS_TR):            Q = SLOPE25 (ω_g − VS_SY)
  *   region 2:                             Q = K_HSS ω_g²
  * Pitch: gain-scheduled PI on e = ω_g − ω_g,rated, GK(β) = 1 / (1 + β/6.302336°), anti-windup.
+ * Optional feed-forward (app only): β_cmd = β_sched(V_meas) + PI, where the PI integral may go
+ * negative just far enough to cancel the feed-forward. The reference PI alone cannot follow a
+ * 2 m/s² preset ramp or TI 0.12 gusts above ≈ 18 m/s without a 115 % overspeed trip; modern
+ * turbines add wind-speed feed-forward for the same reason.
  *
  * Source: Jonkman et al. 2009, NREL/TP-500-38060 §7.
  */
-import {
-  PITCH_GAIN_KNEE_DEG,
-  PITCH_KI,
-  PITCH_KP,
-  PITCH_RATE_DEG_S,
-} from '@/config/controller';
+import { PITCH_GAIN_KNEE_DEG, PITCH_KI, PITCH_KP, PITCH_RATE_DEG_S } from '@/config/controller';
 import { ETA, GEAR_RATIO, OMEGA_GEN_RATED_RAD, P_RATED_W } from '@/config/turbine';
 import { OPTIMUM } from '@/physics/tables';
 import type { SupervisorState } from '@/physics/types';
@@ -79,12 +78,42 @@ export function pitchIntegralFor(pitchDeg: number): number {
   return (pitchDeg * RAD) / (PITCH_KI * gainSchedule(pitchDeg));
 }
 
+/** Integral state that makes ff + PI reproduce pitchDeg at zero speed error. */
+export function pitchIntegralForFF(pitchDeg: number, ffDeg: number): number {
+  return ((pitchDeg - ffDeg) * RAD) / (PITCH_KI * gainSchedule(pitchDeg));
+}
+
 /** PI pitch command in deg; updates the integral with anti-windup. */
-export function pitchCommand(pi: PitchPi, omegaGenRad: number, pitchDeg: number, dt: number): number {
+export function pitchCommand(
+  pi: PitchPi,
+  omegaGenRad: number,
+  pitchDeg: number,
+  dt: number,
+): number {
   const gk = gainSchedule(pitchDeg);
   const err = omegaGenRad - OMEGA_GEN_RATED_RAD;
   pi.integral = Math.min(Math.max(pi.integral + err * dt, 0.0), (90 * RAD) / (PITCH_KI * gk));
   const cmd = (gk * (PITCH_KP * err + PITCH_KI * pi.integral)) / RAD;
+  return Math.min(Math.max(cmd, 0.0), 90.0);
+}
+
+/**
+ * PI pitch command plus a feed-forward angle, in deg. The integral is bounded so the PI term
+ * spans [−ff, 90°]: in region 2 (ff = 0) this is the reference anti-windup.
+ */
+export function pitchCommandFF(
+  pi: PitchPi,
+  omegaGenRad: number,
+  pitchDeg: number,
+  ffDeg: number,
+  dt: number,
+): number {
+  const gk = gainSchedule(pitchDeg);
+  const err = omegaGenRad - OMEGA_GEN_RATED_RAD;
+  const lo = -(ffDeg * RAD) / (PITCH_KI * gk);
+  const hi = (90 * RAD) / (PITCH_KI * gk);
+  pi.integral = Math.min(Math.max(pi.integral + err * dt, lo), hi);
+  const cmd = ffDeg + (gk * (PITCH_KP * err + PITCH_KI * pi.integral)) / RAD;
   return Math.min(Math.max(cmd, 0.0), 90.0);
 }
 

@@ -1,15 +1,27 @@
 /**
  * WebAudio synthesis: whoosh, hum, wind, rain, thunder, brake (§13).
- * Built in TODO.md Phase 14.
+ * Phase 6 wires a silent stub into the frame loop; the synthesis is built in TODO.md Phase 14.
  */
-import { notImplemented } from '@/util/stub';
 import type { SimSnapshot } from '@/physics/types';
 
 export interface Audio {
-  setEnabled(_on: boolean): void;
-  update(_s: SimSnapshot): void;
+  setEnabled(on: boolean): void;
+  update(s: SimSnapshot, dt: number): void;
+  dispose(): void;
 }
 
 export function createAudio(): Audio {
-  return notImplemented('createAudio');
+  let enabled = false;
+  return {
+    setEnabled(on) {
+      enabled = on;
+    },
+    update() {
+      if (!enabled) return;
+      // Phase 14: drive the WebAudio graph from the snapshot here.
+    },
+    dispose() {
+      enabled = false;
+    },
+  };
 }
