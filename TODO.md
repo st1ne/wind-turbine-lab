@@ -205,7 +205,7 @@ No UI framework. Accessible markup (buttons, range inputs, aria attributes). Eng
 - [x] Stencil caps with a hatched dark fill and a 2 px amber edge (stencil works everywhere tested, so no BackSide fallback was built)
 - [x] Exploded: components offset along the shaft axis with 60 ms stagger; the shell lifts +4 m and fades to 0.15; the rotor moves +6 m forward; dashed guide lines
 - [x] Labels for internals appear only in Cutaway/Exploded (built in Phase 12)
-- [~] Hotkey V cycles (done in Phase 5); URL param `view` lands with the URL state in Phase 13
+- [x] Hotkey V cycles (Phase 5); URL param `view` (Phase 13)
 
 **Done when:** switching views never pops, caps have no gaps from any angle, and the rotor and gears keep running during transitions.
 
@@ -297,11 +297,11 @@ Add tip-vortex helices, the power-flow pulses to a village whose lights scale wi
 
 ## Phase 13: Tour, URL, share, chips  (≈ 2 h)
 
-- [ ] `tour/steps.ts` + `tour.ts`: 6 steps (§12), caption bar with progress dots, pauses on user input, Resume pill
-- [ ] `ui/chips.ts`: 4 camera chips (§3.8) with fly-to and mode switches
-- [ ] `state/urlState.ts`: read/write query params (§17), debounced replaceState
-- [ ] `ui/share.ts`: Web Share API, else clipboard + toast
-- [ ] `{BRAND}` wordmark placeholder and `{HANDLE}` link in one config file
+- [x] `tour/steps.ts` + `tour.ts`: 6 steps (§12), caption bar with progress dots, pauses on user input, Resume pill
+- [x] `ui/chips.ts`: 4 camera chips (§3.8) with fly-to and mode switches
+- [x] `state/urlState.ts`: read/write query params (§17), debounced replaceState
+- [x] `ui/share.ts`: Web Share API, else clipboard + toast
+- [x] `{BRAND}` wordmark placeholder and `{HANDLE}` link in one config file (`config/brand.ts`; handle @SolSt1ne)
 
 **Done when:** a shared URL reproduces the view, wind, mode and camera chip; the tour runs start to finish in ≈ 50 s.
 

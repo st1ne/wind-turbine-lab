@@ -13,7 +13,7 @@ import { createControlPanel } from '@/ui/controlPanel';
 import { createExplainer } from '@/ui/explainer';
 import { createHelp } from '@/ui/help';
 import { installHotkeys } from '@/ui/hotkeys';
-import { createLayout } from '@/ui/layout';
+import { createLayout, type Layout } from '@/ui/layout';
 import { createLoader } from '@/ui/loader';
 import { createStatCards } from '@/ui/statCards';
 import { BETZ_SWEET_SPOT } from '@/ui/templates';
@@ -28,6 +28,7 @@ export interface UiActions {
 }
 
 export interface Ui {
+  readonly layout: Layout;
   /** per frame; text is throttled internally (§14.4) */
   update(s: SimSnapshot, dt: number): void;
   /** call after the first rendered frame (fades the loader) */
@@ -86,6 +87,7 @@ export function createUi(root: HTMLElement, store: Store<UiState>, actions: UiAc
   );
 
   return {
+    layout,
     update(s, dt) {
       const ui = store.get();
       const pitchLockDeg = actions.lockedPitchDeg();

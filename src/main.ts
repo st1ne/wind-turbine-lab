@@ -40,17 +40,22 @@ import { createRain } from '@/scene/fx/rain';
 import { createTreeSway } from '@/scene/fx/trees';
 import { createSimBridge } from '@/state/simBridge';
 import { createStore } from '@/state/store';
+import { installUrlSync, readUrlState, urlToUiPatch } from '@/state/urlState';
 import { defaultUiState } from '@/state/uiState';
 import { createDevOverlay } from '@/ui/devOverlay';
-import { toast } from '@/ui/toast';
 import { createUi } from '@/ui/ui';
+import { CHIPS, createChips } from '@/ui/chips';
+import { h } from '@/ui/dom';
+import { share } from '@/ui/share';
+import { createTour } from '@/tour/tour';
 import { createRafLoop } from '@/util/rafLoop';
 import { createTweens } from '@/util/tween';
 
 const canvas = document.getElementById('scene') as HTMLCanvasElement;
 const uiRoot = document.getElementById('ui-root') as HTMLElement;
 
-const store = createStore(defaultUiState());
+// URL state (§17) is read before the sim starts, so a shared link opens in its steady state
+const store = createStore({ ...defaultUiState(), ...urlToUiPatch(readUrlState(location.search)) });
 const sim = createSim();
 sim.initSteady(store.get().windTarget);
 
@@ -129,11 +134,33 @@ const tweens = createTweens();
 
 const ui = createUi(uiRoot, store, {
   resetTrip: bridge.resetTrip,
-  toggleTour() {
-    // The guided tour is built in Phase 13; it will call bridge.jumpTo() per step.
-    toast('The guided tour is coming soon');
-  },
+  toggleTour: () => tour.toggle(),
   lockedPitchDeg: bridge.lockedPitchDeg,
+});
+
+// camera chips (§3.8): highlighted until the user orbits
+ui.layout.chips.append(createChips(store, (p) => rig.flyTo(p)));
+rig.onUserInput(() => store.set({ camChip: null }));
+const startChip = CHIPS.find((c) => c.id === store.get().camChip);
+if (startChip) rig.flyTo(startChip.preset, 0);
+
+// URL sync and share (§17)
+const urlSync = installUrlSync(store);
+const shareBtn = h(
+  'button',
+  { type: 'button', class: 'share-btn glass', 'aria-label': 'Share this view' },
+  '↗ Share',
+);
+shareBtn.addEventListener('click', () => void share(urlSync.flush()));
+ui.layout.corner.prepend(shareBtn);
+
+// guided tour (§12)
+const tour = createTour({
+  store,
+  bridge,
+  flyTo: (p) => rig.flyTo(p),
+  onCameraInput: (cb) => rig.onUserInput(cb),
+  host: uiRoot,
 });
 
 if (import.meta.env.DEV) {
@@ -152,6 +179,8 @@ if (import.meta.env.DEV) {
       views,
       flow,
       lightning,
+      tour,
+      urlSync,
       tweens,
     },
   });
@@ -184,6 +213,7 @@ const loop = createRafLoop((dt) => {
   renderer.info.reset();
   post.setStorm(snapshot.stormLevel, snapshot.t);
   post.render(dt);
+  tour.update(dt);
   ui.update(snapshot, dt);
   audio.update(snapshot, dt);
   dev?.frame(dt, renderer, snapshot, uiState);

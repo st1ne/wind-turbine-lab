@@ -1136,3 +1136,139 @@ kbd {
 .label.flip b {
   margin-left: 0;
 }
+
+/* ---------- camera chips (§3.8), share, tour (§12) ---------- */
+
+.chips {
+  display: flex;
+  gap: 8px;
+}
+
+.chip {
+  padding: 9px 13px;
+  border-radius: 99px;
+  font: 400 12px/1 var(--font-ui);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background 0.2s var(--ease-out),
+    color 0.2s var(--ease-out);
+}
+
+.chip b {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.chip:hover {
+  color: var(--text);
+}
+
+.chip.on {
+  background: #f4f6fb;
+  color: #3a4150;
+}
+
+.chip.on b {
+  color: #0b0f1a;
+}
+
+.share-btn {
+  padding: 9px 13px;
+  border-radius: var(--radius-btn);
+  font: 500 12px/1 var(--font-ui);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.tour-bar {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--gutter) + 52px);
+  transform: translateX(-50%);
+  width: min(620px, calc(100% - 2 * var(--gutter)));
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 14px 12px 18px;
+  animation: fade-in 0.3s var(--ease-out);
+}
+
+.tour-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.tour-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.tour-count {
+  font-size: 10.5px;
+  color: var(--text-dim);
+}
+
+.tour-title {
+  font: 700 14px/1.2 var(--font-display);
+  letter-spacing: 0.01em;
+}
+
+.tour-caption {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: #c5cbd9;
+}
+
+.tour-side {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tour-dots {
+  display: flex;
+  gap: 5px;
+}
+
+.tour-dots i {
+  position: relative;
+  width: 14px;
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+}
+
+.tour-dots i span {
+  position: absolute;
+  inset: 0;
+  background: var(--wind);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.tour-dots i.done span {
+  transform: scaleX(1) !important;
+}
+
+.tour-dots i:not(.on):not(.done) span {
+  transform: scaleX(0) !important;
+}
+
+.tour-resume {
+  border: 0;
+  border-radius: 99px;
+  padding: 8px 13px;
+  background: #f4f6fb;
+  color: #0b0f1a;
+  font: 600 12px/1 var(--font-ui);
+  cursor: pointer;
+}
+
+.tour-bar.paused .tour-caption {
+  opacity: 0.6;
+}
