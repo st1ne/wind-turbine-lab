@@ -204,7 +204,7 @@ No UI framework. Accessible markup (buttons, range inputs, aria attributes). Eng
 - [x] Cutaway: a clipping plane through the shaft axis on the camera side; animate the plane constant 0.9 s; clip the nacelle shell, spinner, hub and tower top 12 m
 - [x] Stencil caps with a hatched dark fill and a 2 px amber edge (stencil works everywhere tested, so no BackSide fallback was built)
 - [x] Exploded: components offset along the shaft axis with 60 ms stagger; the shell lifts +4 m and fades to 0.15; the rotor moves +6 m forward; dashed guide lines
-- [ ] Labels for internals appear only in Cutaway/Exploded (moved to Phase 12, with the label system)
+- [x] Labels for internals appear only in Cutaway/Exploded (built in Phase 12)
 - [~] Hotkey V cycles (done in Phase 5); URL param `view` lands with the URL state in Phase 13
 
 **Done when:** switching views never pops, caps have no gaps from any angle, and the rotor and gears keep running during transitions.
@@ -228,7 +228,7 @@ eased offsets and dashed guide lines. Provide the BackSide fallback behind a fla
 - [x] `fx/powerFlow.ts`: CatmullRom path blades → hub → LSS → gearbox → HSS → generator → converter → tower cable → transformer → pylon → village; amber pulses, count and speed ∝ P
 - [x] `environment/village.ts`: 12 houses (instanced), window emissive, lit count = round(12·P/P_rated)
 - [x] `fx/loadsViz.ts`: thrust arrow (coral, length ∝ T, flips when T < 0), tower bend ×25, blade flap ×2, stress color ramp on the tower, person figure 1.8 m
-- [ ] Labels per mode (§3.7 table): moved to Phase 12, with the label system
+- [x] Labels per mode (§3.7 table) (built in Phase 12)
 
 **Done when:** in Wind mode at 8 m/s the smoke visibly slows and widens to about 1.25R in the wake. In Power mode the pulses stop when parked. In Loads mode the tower visibly straightens when the storm feathers the blades.
 
@@ -287,9 +287,9 @@ Add tip-vortex helices, the power-flow pulses to a village whose lights scale wi
 
 ## Phase 12: Labels  (≈ 2 h)
 
-- [ ] `scene/labels.ts`: DOM pool, projection each frame, behind-camera culling, occlusion raycasts on coarse proxies every 6th frame
-- [ ] Priority collision (greedy vertical nudge, max 9 visible), 200 ms fades
-- [ ] All labels in the §3.7 table with live values and follow/view visibility rules
+- [x] `scene/labels.ts`: DOM pool, projection each frame, behind-camera culling, occlusion raycasts on coarse proxies every 6th frame
+- [x] Priority collision (greedy vertical nudge, max 9 visible), 200 ms fades
+- [x] All labels in the §3.7 table with live values and follow/view visibility rules
 
 **Done when:** labels never jitter, never stack on top of each other, and never show through the tower.
 

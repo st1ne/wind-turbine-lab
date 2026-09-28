@@ -38,7 +38,12 @@ export function arrowLength(thrustN: number): number {
   return Math.abs(thrustN) * ARROW_M_PER_N;
 }
 
-export function createLoadsViz(turbine: Turbine): SceneModule<Group> {
+export interface LoadsViz extends SceneModule<Group> {
+  /** the 1.8 m person (label anchor) */
+  readonly person: Group;
+}
+
+export function createLoadsViz(turbine: Turbine): LoadsViz {
   const group = new Group();
   group.name = 'loads-viz';
   const coral = new Color(THEME.loads);
@@ -78,6 +83,7 @@ export function createLoadsViz(turbine: Turbine): SceneModule<Group> {
 
   return {
     object3d: group,
+    person,
     update(s: SimSnapshot, ui: Readonly<UiState>, dt: number) {
       focus = approach(focus, ui.follow === 'loads' ? 1 : 0, dt, FOCUS_TAU_S);
       turbine.tower.stress.uStress.value = Math.max(s.T, 0) / THRUST_RATED_N;

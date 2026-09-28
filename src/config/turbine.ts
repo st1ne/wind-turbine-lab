@@ -50,6 +50,9 @@ export const HOME_POWER_W = 400;
 /** free-spin tip-speed ratio at β = 0 (Cp = 0 root) */
 export const RUNAWAY_TSR = 16.7;
 export const SPEED_OF_SOUND_M_S = 343;
+/** generator / converter output voltage (§3.7 label), V */
+export const CONVERTER_VOLTAGE_V = 690;
+export const G_M_S2 = 9.81;
 
 // ---- geometry (§5.1), used by the scene
 export const TOWER_BASE_DIAMETER_M = 6.0;

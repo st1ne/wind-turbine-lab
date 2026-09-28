@@ -70,6 +70,15 @@ function paragraph(strings: TemplateStringsArray, ...values: string[]): string {
 
 const mw1 = (w: number): string => fmtMW(w, w < 10e6 ? 2 : 1);
 
+/** "Thrust drops from 725 kN at rated to …", or "stays at" within ±1 % of rated. */
+function thrustVersusRated(thrustN: number): string {
+  if (Math.abs(thrustN - THRUST_RATED_N) < 0.01 * THRUST_RATED_N) {
+    return paragraph`Thrust stays at its rated ${b(fmtKN(thrustN))}.`;
+  }
+  const verb = thrustN < THRUST_RATED_N ? 'drops' : 'climbs';
+  return paragraph`Thrust ${verb} from ${b(fmtKN(THRUST_RATED_N))} at rated to ${b(fmtKN(thrustN))}.`;
+}
+
 function body(ctx: TemplateContext): string {
   const { s } = ctx;
   const pWind = windPowerW(s.V);
@@ -82,7 +91,7 @@ function body(ctx: TemplateContext): string {
     case 'CAP':
       return paragraph`The rotor has hit ${b(fmtRpm(OMEGA_RATED_RAD))}. Tips at ${b(fmtMs(OMEGA_RATED_RAD * RADIUS_M, 0))} are the limit for noise and erosion, so the generator leans on the shaft harder instead. ${b(fmtMW(s.Pel))} of power.`;
     case 'SPILL':
-      return paragraph`Too much wind: ${b(mw1(pWind))} arrives, the generator takes only ${b(fmtMW(P_RATED_W))}. The blades twist ${b(fmtDeg(s.beta))} out of the wind and let the rest blow through. Thrust ${s.T <= THRUST_RATED_N ? 'drops' : 'climbs'} from ${b(fmtKN(THRUST_RATED_N))} at rated to ${b(fmtKN(s.T))}.`;
+      return paragraph`Too much wind: ${b(mw1(pWind))} arrives, the generator takes only ${b(fmtMW(P_RATED_W))}. The blades twist ${b(fmtDeg(s.beta))} out of the wind and let the rest blow through. ${thrustVersusRated(s.T)}`;
     case 'SHUTDOWN':
       return paragraph`Storm, ${b(fmtMs(s.V))}. The controller feathers the blades toward ${b(fmtDeg(90, 0))}, edge-on, at ${fmtDeg(PITCH_RATE_DEG_S.SHUTDOWN, 0)}/s. Pitch ${b(fmtDeg(s.beta))}, rotor ${b(fmtRpm(s.omega))}. Once it slows, the brake closes.`;
     case 'PARKED':

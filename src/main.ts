@@ -21,6 +21,8 @@ import { createRoom } from '@/scene/environment/room';
 import { createRuler } from '@/scene/environment/ruler';
 import { createTurbine } from '@/scene/turbine/turbine';
 import { createViews } from '@/scene/views';
+import { createLabelDefs } from '@/scene/labelDefs';
+import { createLabels } from '@/scene/labels';
 import { createBetzDisk } from '@/scene/betzDisk';
 import { createFollow } from '@/scene/follow';
 import { createFlow } from '@/scene/fx/flow';
@@ -85,6 +87,7 @@ modules.push(views);
 turbine.object3d.updateMatrixWorld(true);
 const flow = createFlow(turbine);
 const rotorRest = turbine.rotor.object3d.getWorldPosition(new Vector3());
+const loadsViz = createLoadsViz(turbine);
 const village = createVillage(turbine.object3d.localToWorld(new Vector3(6.5, 2.6, 4.5)));
 const fx: SceneModule[] = [
   { object3d: new Group(), update: flow.update, dispose() {} },
@@ -101,11 +104,17 @@ const fx: SceneModule[] = [
   createBeacon(),
   village,
   createPowerFlow(turbine, village),
-  createLoadsViz(turbine),
+  loadsViz,
   createFollow(),
 ];
 modules.push(...fx);
 modules.forEach((m) => scene.add(m.object3d));
+
+// 3D-pinned labels (§3.7), after every module that moves their anchors
+scene.updateMatrixWorld(true);
+const labelDefs = createLabelDefs(scene, turbine, flow, village, loadsViz.person);
+const labels = createLabels(uiRoot, camera, labelDefs.specs, labelDefs.proxies);
+modules.push(labels);
 
 const dev = import.meta.env.DEV ? createDevOverlay(uiRoot) : null;
 
