@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { createSim } from '@/physics/sim';
 import type { Regime, SimSnapshot } from '@/physics/types';
+import { cpIdeal } from '@/physics/actuatorDisk';
+import { fmtPct } from '@/physics/format';
 import { renderTemplate } from '@/ui/templates';
 
 function steady(V: number, idealDisk = false): SimSnapshot {
@@ -52,5 +54,24 @@ describe('explanation templates (§3.5)', () => {
     const betz = { ...base, regime: 'BETZ' as const };
     expect(renderTemplate({ s: betz, wakeB: 0.34, pitchLockDeg: null })).toContain('Betz limit');
     expect(renderTemplate({ s: betz, wakeB: 0.6, pitchLockDeg: null })).not.toContain('c-ok');
+  });
+});
+
+describe('Betz mode text (§10)', () => {
+  const betz = { ...steady(8), regime: 'BETZ' as const };
+  it('quotes Cp(b) exactly as card 3 formats it, at every b', () => {
+    for (let b = 0; b <= 1.0001; b += 0.005) {
+      const html = renderTemplate({ s: betz, wakeB: b, pitchLockDeg: null });
+      expect(html).toContain(`<b>${fmtPct(cpIdeal(b), 1)}</b>`);
+    }
+  });
+  it('flags the turbulent wake state only below b = 0.10', () => {
+    expect(renderTemplate({ s: betz, wakeB: 0.05, pitchLockDeg: null })).toContain(
+      'turbulent wake state',
+    );
+    expect(renderTemplate({ s: betz, wakeB: 0.2, pitchLockDeg: null })).not.toContain('turbulent');
+    expect(renderTemplate({ s: betz, wakeB: 1 / 3, pitchLockDeg: null })).not.toContain(
+      'turbulent',
+    );
   });
 });

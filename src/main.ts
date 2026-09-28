@@ -21,6 +21,7 @@ import { createRoom } from '@/scene/environment/room';
 import { createRuler } from '@/scene/environment/ruler';
 import { createTurbine } from '@/scene/turbine/turbine';
 import { createViews } from '@/scene/views';
+import { createBetzDisk } from '@/scene/betzDisk';
 import { createFollow } from '@/scene/follow';
 import { createFlow } from '@/scene/fx/flow';
 import { createLoadsViz } from '@/scene/fx/loadsViz';
@@ -81,6 +82,7 @@ const fx: SceneModule[] = [
   createSmokeRake(rotorRest, flow.radius),
   createSmokeLines(flow),
   createTipVortices(flow),
+  createBetzDisk(turbine),
   village,
   createPowerFlow(turbine, village),
   createLoadsViz(turbine),

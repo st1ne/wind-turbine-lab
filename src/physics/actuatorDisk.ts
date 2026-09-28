@@ -14,6 +14,9 @@
 /** Visual clamp on induction: beyond this momentum theory breaks down (turbulent wake state). */
 export const A_VISUAL_MAX = 0.45;
 
+/** Half-width of the Betz sweet spot around b = 1/3 (§10). */
+export const BETZ_SWEET_SPOT = 0.015;
+
 export function cpIdeal(b: number): number {
   return 0.5 * (1 + b) * (1 - b * b);
 }

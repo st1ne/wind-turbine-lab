@@ -28,6 +28,14 @@ export interface ElementResult {
   cd: number;
 }
 
+/** Model switches for the loss waterfall (§3.6); the defaults are the reference model. */
+export interface BemOptions {
+  /** Prandtl tip and hub loss (default true) */
+  tipLoss?: boolean;
+  /** profile drag (default true) */
+  drag?: boolean;
+}
+
 export interface RotorResult {
   cp: number;
   ct: number;
@@ -54,7 +62,14 @@ export function solveElement(
   pitchDeg: number,
   i: number,
   iters = 200,
+  opts: BemOptions = {},
 ): ElementResult {
+  const tipLoss = opts.tipLoss ?? true;
+  const drag = opts.drag ?? true;
+  const aero = (family: typeof st.family, alphaDeg: number): { cl: number; cd: number } => {
+    const p = polar(family, alphaDeg);
+    return drag ? p : { cl: p.cl, cd: 0 };
+  };
   const st = station(i);
   const ri = st.rM;
   const c = st.chordM;
@@ -64,10 +79,10 @@ export function solveElement(
   let ap = 0.0;
   for (let k = 0; k < iters; k++) {
     const phi = Math.atan2(V * (1 - a), omegaRad * ri * (1 + ap));
-    const { cl, cd } = polar(st.family, (phi - th) / RAD);
+    const { cl, cd } = aero(st.family, (phi - th) / RAD);
     const cn = cl * Math.cos(phi) + cd * Math.sin(phi);
     const ct = cl * Math.sin(phi) - cd * Math.cos(phi);
-    const F = prandtlLoss(ri, phi);
+    const F = tipLoss ? prandtlLoss(ri, phi) : 1;
     const sphi = Math.sin(phi);
     const cphi = Math.cos(phi);
     if (Math.abs(sphi) < 1e-4) break;
@@ -99,7 +114,7 @@ export function solveElement(
   const vT = omegaRad * ri * (1 + ap);
   const phi = Math.atan2(vAx, vT);
   const alphaDeg = (phi - th) / RAD;
-  const { cl, cd } = polar(st.family, alphaDeg);
+  const { cl, cd } = aero(st.family, alphaDeg);
   const cn = cl * Math.cos(phi) + cd * Math.sin(phi);
   const ct = cl * Math.sin(phi) - cd * Math.cos(phi);
   const q = 0.5 * RHO_KG_M3 * (vAx * vAx + vT * vT) * c;
@@ -107,11 +122,16 @@ export function solveElement(
 }
 
 /** Whole-rotor Cp, Ct, thrust and torque. V must be > 0. */
-export function rotor(V: number, omegaRad: number, pitchDeg: number): RotorResult {
+export function rotor(
+  V: number,
+  omegaRad: number,
+  pitchDeg: number,
+  opts: BemOptions = {},
+): RotorResult {
   let T = 0;
   let Q = 0;
   for (let i = 0; i < STATION_COUNT; i++) {
-    const s = solveElement(V, omegaRad, pitchDeg, i);
+    const s = solveElement(V, omegaRad, pitchDeg, i, 200, opts);
     const dr = (STATIONS[i] as { drM: number }).drM;
     T += BLADES * s.dT * dr;
     Q += BLADES * s.dQ * dr;

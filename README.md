@@ -66,8 +66,8 @@ src/
 
 ## Status
 
-Phases 0–8 done (scaffold, physics core, scene shell, turbine exterior, nacelle internals, UI
-shell, wiring and time, Whole / Cutaway / Exploded views, Follow modes and FX). Modules not built yet throw `not implemented`.
+Phases 0–9 done (scaffold, physics core, scene shell, turbine exterior, nacelle internals, UI
+shell, wiring and time, Whole / Cutaway / Exploded views, Follow modes and FX, Betz disk mode). Modules not built yet throw `not implemented`.
 
 Dev helpers (dev server only): backtick toggles the stats/snapshot overlay; `window.__lab`
 exposes sim, bridge (`jumpTo(V)`), store, scene and camera. All hotkeys from TECH_SPEC §3.9 are live; press H for the
@@ -93,3 +93,9 @@ sim time, at full-scale speed, so at ×1 the air takes about 16 s to cross the r
 at 8 m/s. Power pulses are drawn through the shell and tower (x-ray) so the path stays readable
 in Whole view. The tower stress ramp uses a thin-wall section modulus W ∝ r², normalised to
 the base.
+
+Loss waterfall (§3.6): the spec quotes approximate steps; the app computes them at λ_opt and
+0° pitch in `physics/losses.ts`: Betz 16/27 → Glauert's optimum rotor with wake rotation →
+BEM of the real blade without tip/hub loss and drag → with Prandtl loss → with drag (= Cp_max)
+→ × η. Result: 59.3 → 58.1 → 55.2 → 51.4 → 47.1 → 44.4 % (spec: 55.3, 51.7, 44.5). The waterfall
+shows in Ideal-disk mode and for 6 s after leaving it.

@@ -15,7 +15,7 @@ import {
   V_CUT_IN,
   V_RESTART,
 } from '@/config/turbine';
-import { cpIdeal } from '@/physics/actuatorDisk';
+import { A_VISUAL_MAX, BETZ_SWEET_SPOT, cpIdeal } from '@/physics/actuatorDisk';
 import { fixed, fmtDeg, fmtKN, fmtKW, fmtMs, fmtMW, fmtPct, fmtRpm } from '@/physics/format';
 import {
   lockedFlatThrustN,
@@ -36,8 +36,7 @@ export interface TemplateContext {
   tripPeakOmegaRad?: number;
 }
 
-/** Half-width of the Betz sweet spot around b = 1/3 (§10). */
-export const BETZ_SWEET_SPOT = 0.015;
+export { BETZ_SWEET_SPOT };
 
 const CONCEPTS: readonly (readonly [RegExp, string])[] = [
   [/\bwind\b/i, 'c-wind'],
@@ -95,9 +94,14 @@ function body(ctx: TemplateContext): string {
     case 'BETZ': {
       const cpb = cpIdeal(ctx.wakeB);
       const text = paragraph`Slow the wind too little and most of it passes unused. Stop it entirely and nothing flows through. At ${b(`b = ${fixed(ctx.wakeB, 2)}`)} the disk takes ${b(fmtPct(cpb, 1))}. The peak, ${b(`16/27 = ${fmtPct(BETZ, 1)}`)}, sits at b = 1/3 (Betz, 1920).`;
-      return Math.abs(ctx.wakeB - 1 / 3) < BETZ_SWEET_SPOT
-        ? `${text} <span class="c-ok">That's the Betz limit: no rotor can do better.</span>`
-        : text;
+      if (Math.abs(ctx.wakeB - 1 / 3) < BETZ_SWEET_SPOT) {
+        return `${text} <span class="c-ok">That's the Betz limit: no rotor can do better.</span>`;
+      }
+      // a = (1 − b)/2 beyond A_VISUAL_MAX: momentum theory no longer holds
+      if (ctx.wakeB < 1 - 2 * A_VISUAL_MAX) {
+        return `${text} Below <b>b = ${fixed(1 - 2 * A_VISUAL_MAX, 2)}</b> the simple theory breaks down: the air piles up behind the disk and churns (the <span class="c-loads">turbulent wake state</span>).`;
+      }
+      return text;
     }
   }
 }

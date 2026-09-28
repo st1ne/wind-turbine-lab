@@ -17,6 +17,7 @@ import { createLoader } from '@/ui/loader';
 import { createStatCards } from '@/ui/statCards';
 import { BETZ_SWEET_SPOT } from '@/ui/templates';
 import { toast } from '@/ui/toast';
+import { createWaterfall, WATERFALL_LINGER_S } from '@/ui/waterfall';
 
 export interface UiActions {
   resetTrip(): void;
@@ -47,7 +48,25 @@ export function createUi(root: HTMLElement, store: Store<UiState>, actions: UiAc
 
   const stats = createStatCards();
   const explainer = createExplainer();
-  layout.left.append(stats.el, explainer.el);
+  const waterfall = createWaterfall();
+  layout.left.append(stats.el, explainer.el, waterfall.el);
+
+  // Ideal disk forces the Betz chart (§3.6, §10) and brings back the previous tab on exit;
+  // the loss waterfall stays for 6 s after leaving
+  let chartBeforeIdeal = store.get().chart;
+  let waterfallLeftS = 0;
+  store.subscribe(
+    (s) => s.rotorMode,
+    (mode) => {
+      if (mode === 'ideal') {
+        chartBeforeIdeal = store.get().chart;
+        store.set({ chart: 'betz' });
+      } else {
+        store.set({ chart: chartBeforeIdeal === 'betz' ? 'power' : chartBeforeIdeal });
+        waterfallLeftS = WATERFALL_LINGER_S;
+      }
+    },
+  );
   const panel = createControlPanel(store, { ...actions, toggleHelp });
   layout.panel.append(panel.el);
   installHotkeys(store, { ...actions, toggleHelp });
@@ -72,6 +91,8 @@ export function createUi(root: HTMLElement, store: Store<UiState>, actions: UiAc
       stats.update({ s, rotorMode: ui.rotorMode, wakeB: ui.wakeB, gusts: ui.gusts }, dt);
       explainer.update({ s, wakeB: ui.wakeB, pitchLockDeg, tripPeakOmegaRad }, dt);
       panel.update(s);
+      waterfallLeftS = Math.max(waterfallLeftS - dt, 0);
+      waterfall.setVisible(ui.rotorMode === 'ideal' || waterfallLeftS > 0);
 
       if (s.state !== lastState) {
         if (s.state === 'TRIP') toast('TRIP: overspeed', 'alarm');
