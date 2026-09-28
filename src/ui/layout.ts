@@ -1,6 +1,6 @@
 /**
  * Screen regions (TECH_SPEC §3.1): left column (brand, title block, stat cards, explanation,
- * chart), top-right control panel, bottom-center camera chips, bottom-right share / X link.
+ * chart), top-right control panel, bottom-center camera chips, bottom-left share / X link.
  * The canvas stays full-bleed behind everything; regions sit in a 24 px gutter.
  */
 import { BRAND } from '@/config/brand';

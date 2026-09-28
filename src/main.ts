@@ -3,6 +3,7 @@
  * The store holds uiState; the sim bridge derives SimInputs from it; scene, UI and audio read
  * the immutable snapshot each frame. The scene never mutates the sim.
  */
+import { BRAND } from '@/config/brand';
 import './ui/styles.css';
 import { Color, FogExp2, Group, Scene, Vector3 } from 'three';
 import { THEME } from '@/config/theme';
@@ -47,7 +48,6 @@ import { createDevOverlay } from '@/ui/devOverlay';
 import { createUi } from '@/ui/ui';
 import { CHIPS, createChips } from '@/ui/chips';
 import { h } from '@/ui/dom';
-import { share } from '@/ui/share';
 import { createTour } from '@/tour/tour';
 import { createRafLoop } from '@/util/rafLoop';
 import { createTweens } from '@/util/tween';
@@ -157,15 +157,20 @@ if (startChip) rig.flyTo(startChip.preset, 0);
 // first frame: the camera dollies in from a wide shot (§2), unless a link chose a view
 else rig.flyTo('wide', 0);
 
-// URL sync and share (§17)
+// URL sync (§17); Share reposts the launch post on X
 const urlSync = installUrlSync(store);
 const shareBtn = h(
-  'button',
-  { type: 'button', class: 'share-btn glass', 'aria-label': 'Share this view' },
+  'a',
+  {
+    class: 'share-btn glass',
+    href: BRAND.shareUrl,
+    target: '_blank',
+    rel: 'noopener',
+    'aria-label': 'Share: repost on X',
+  },
   h('span', { 'aria-hidden': 'true' }, '↗'),
   h('span', { class: 'share-label', 'aria-hidden': 'true' }, ' Share'),
 );
-shareBtn.addEventListener('click', () => void share(urlSync.flush()));
 ui.layout.corner.prepend(shareBtn);
 
 // guided tour (§12)

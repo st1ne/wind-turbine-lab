@@ -184,18 +184,18 @@ any preset, it reaches the operating point in 10–30 s.
 
 ## Launch
 
+The Share button (bottom left, clear of host badges in the bottom-right corner) opens a repost
+of the launch post on X (`BRAND.shareUrl`); the view itself is still kept in the address bar.
+
 `npm run build` writes a static site to `dist/` (≈ 310 kB gzipped JS, fonts from Google Fonts).
 Asset paths are relative (`base: './'`), so the same build works at a domain root or under a
 subpath.
 
-- GitHub Pages: `.github/workflows/pages.yml` tests, builds and publishes on every push to
-  `main`. One-time setup: Settings → Pages → Build and deployment → Source: **GitHub Actions**.
-  The site is served at https://st1ne.github.io/wind-turbine-lab/.
 - Netlify: `netlify.toml` holds the build settings; Add new site → Import an existing project →
   GitHub → `wind-turbine-lab` → Deploy. Every push to `main` redeploys.
 - Cloudflare Pages / Vercel: build command `npm run build`, output directory `dist`.
-- `og:image` in `index.html` is an absolute URL on GitHub Pages (link previews need one); change
-  it if the site moves. Fill in `BRAND.name` / `BRAND.domain` in `src/config/brand.ts` when there
+- `og:image` in `index.html` must be an absolute URL (link previews need one); set it to the
+  live site's address. Fill in `BRAND.name` / `BRAND.domain` in `src/config/brand.ts` when there
   is one (empty values are not rendered).
 - `public/og-image.jpg` (1200 × 630, Storm shutdown in Cutaway) was captured from the app; the
   `noscript` fallback shows it too.

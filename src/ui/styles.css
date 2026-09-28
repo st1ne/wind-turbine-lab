@@ -162,7 +162,8 @@ button {
   position: absolute;
   top: var(--gutter);
   left: var(--gutter);
-  bottom: var(--gutter);
+  /* leaves room for the share / X row under it (bottom-left: host badges sit bottom-right) */
+  bottom: calc(var(--gutter) + 46px);
   width: 360px;
   display: flex;
   flex-direction: column;
@@ -196,7 +197,7 @@ button {
 
 .region-corner {
   position: absolute;
-  right: var(--gutter);
+  left: var(--gutter);
   bottom: var(--gutter);
   display: flex;
   gap: 8px;
@@ -1168,6 +1169,7 @@ kbd {
 }
 
 .share-btn {
+  text-decoration: none;
   padding: 9px 13px;
   border-radius: var(--radius-btn);
   font: 500 12px/1 var(--font-ui);
@@ -1448,6 +1450,8 @@ kbd {
   .region-corner {
     top: var(--gutter);
     bottom: auto;
+    left: auto;
+    right: var(--gutter);
   }
   .region-corner .x-link {
     display: none;

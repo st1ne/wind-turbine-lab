@@ -8,4 +8,6 @@ export const BRAND = {
   domain: '',
   handle: '@SolSt1ne',
   handleUrl: 'https://x.com/SolSt1ne',
+  /** the Share button reposts the launch post on X */
+  shareUrl: 'https://x.com/intent/retweet?tweet_id=2104553334271103141',
 } as const;
