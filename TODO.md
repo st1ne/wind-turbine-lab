@@ -309,8 +309,11 @@ Add tip-vortex helices, the power-flow pulses to a village whose lights scale wi
 
 ## Phase 14: Audio  (≈ 1.5 h)
 
-- [ ] `audio/audio.ts`: WebAudio graph from §13 (whoosh at blade-pass frequency, generator hum at 2 × ω_g/2π, wind noise, rain, thunder, brake squeal), master limiter
-- [ ] Starts only after a user gesture; mute state in the URL; off by default
+- [x] `audio/audio.ts`: WebAudio graph from §13 (whoosh at blade-pass frequency, generator hum at 2 × ω_g/2π, wind noise, rain, thunder, brake squeal), master limiter
+- [x] Starts only after a user gesture; mute state in the URL; off by default
+
+---
+- [x] Volume slider next to the speaker (URL `vol`); moving it while muted turns the sound on
 
 ---
 

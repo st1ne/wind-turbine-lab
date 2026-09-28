@@ -25,6 +25,8 @@ export interface UiState {
   gusts: boolean;
   chart: ChartTab;
   sound: boolean;
+  /** master volume 0–1 (applies while sound is on) */
+  volume: number;
   /** -1 = tour not running */
   tourStep: number;
   paused: boolean;
@@ -75,6 +77,7 @@ export function defaultUiState(): UiState {
     gusts: false,
     chart: 'power',
     sound: false,
+    volume: 0.7,
     tourStep: -1,
     paused: false,
     camChip: null,

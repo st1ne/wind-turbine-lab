@@ -27,7 +27,7 @@ export const HOTKEYS: readonly (readonly [string, string])[] = [
   ['Space', 'Pause / resume the simulation'],
   ['Enter', 'Start / stop the guided tour'],
   ['X', 'Reset after a trip'],
-  ['M', 'Sound on/off'],
+  ['M', 'Sound on/off (volume: the slider next to the speaker)'],
   ['H or ?', 'This help'],
 ];
 

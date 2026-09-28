@@ -1272,3 +1272,61 @@ kbd {
 .tour-bar.paused .tour-caption {
   opacity: 0.6;
 }
+
+/* ---------- sound + volume (§13) ---------- */
+
+.sound-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.volume {
+  --vol: 70%;
+  width: 72px;
+  height: 20px;
+  margin: 0;
+  background: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.volume::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--text) var(--vol), rgba(255, 255, 255, 0.15) var(--vol));
+}
+
+.volume::-moz-range-track {
+  height: 3px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--text) var(--vol), rgba(255, 255, 255, 0.15) var(--vol));
+}
+
+.volume::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 11px;
+  height: 11px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: #f4f6fb;
+  border: 0;
+}
+
+.volume::-moz-range-thumb {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #f4f6fb;
+  border: 0;
+}
+
+.sound-group.muted .volume {
+  opacity: 0.4;
+}
+
+.volume:focus-visible {
+  outline: 2px solid var(--wind);
+  outline-offset: 2px;
+}

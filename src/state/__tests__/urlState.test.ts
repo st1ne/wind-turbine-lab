@@ -19,6 +19,8 @@ describe('URL state (§17)', () => {
       timeScale: 4,
       gusts: true,
       camChip: 'nacelle',
+      sound: true,
+      volume: 0.35,
     };
     const search = writeUrlState(ui);
     expect(search).toContain('v=30');
@@ -34,11 +36,13 @@ describe('URL state (§17)', () => {
     expect(back.timeScale).toBe(4);
     expect(back.gusts).toBe(true);
     expect(back.camChip).toBe('nacelle');
+    expect(back.sound).toBe(true);
+    expect(back.volume).toBe(0.35);
   });
 
   it('ignores junk and clamps numbers', () => {
     expect(readUrlState('?view=sideways&follow=&mode=x&t=3&cam=moon&lock=maybe')).toEqual({});
-    expect(readUrlState('?v=99&b=-2')).toEqual({ windTarget: 35, wakeB: 0 });
+    expect(readUrlState('?v=99&b=-2&vol=3')).toEqual({ windTarget: 35, wakeB: 0, volume: 1 });
     expect(readUrlState('?v=abc')).toEqual({});
     expect(readUrlState('?v=12.34')).toEqual({ windTarget: 12.3 });
   });

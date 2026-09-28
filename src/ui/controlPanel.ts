@@ -192,6 +192,21 @@ export function createControlPanel(store: Store<UiState>, actions: PanelActions)
   timeBtn.classList.add('wide');
   const gustBtn = iconButton('Gusts', ICONS.gusts, 'G');
   const soundBtn = iconButton('Sound', ICONS.soundOff, 'M');
+  const volume = h('input', {
+    type: 'range',
+    class: 'volume',
+    min: 0,
+    max: 1,
+    step: 0.05,
+    'aria-label': 'Volume',
+    title: 'Volume',
+  });
+  // moving the volume up while muted turns the sound on (a user gesture, so audio may start)
+  volume.addEventListener('input', () => {
+    const v = Number(volume.value);
+    set(v > 0 && !store.get().sound ? { volume: v, sound: true } : { volume: v });
+  });
+  const soundGroup = h('div', { class: 'sound-group' }, soundBtn, volume);
   const helpBtn = iconButton('Help', ICONS.help, 'H');
   const pausedTag = h('span', { class: 'paused-tag mono', hidden: true }, 'paused · space');
   const resetBtn = h(
@@ -206,7 +221,7 @@ export function createControlPanel(store: Store<UiState>, actions: PanelActions)
     tourBtn,
     timeBtn,
     gustBtn,
-    soundBtn,
+    soundGroup,
     helpBtn,
     pausedTag,
     resetBtn,
@@ -245,6 +260,10 @@ export function createControlPanel(store: Store<UiState>, actions: PanelActions)
     timeBtn.setAttribute('aria-label', `Time scale ×${s.timeScale}`);
     gustBtn.setAttribute('aria-pressed', String(s.gusts));
     soundBtn.setAttribute('aria-pressed', String(s.sound));
+    if (Number(volume.value) !== s.volume) volume.value = String(s.volume);
+    volume.setAttribute('aria-valuetext', `${Math.round(s.volume * 100)} percent`);
+    volume.style.setProperty('--vol', `${s.volume * 100}%`);
+    soundGroup.classList.toggle('muted', !s.sound);
     soundBtn.replaceChild(
       icon(s.sound ? ICONS.soundOn : ICONS.soundOff),
       soundBtn.firstChild as Node,

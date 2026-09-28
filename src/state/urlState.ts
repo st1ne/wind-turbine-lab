@@ -1,6 +1,6 @@
 /**
- * URL state (TECH_SPEC §17): query params `v` (wind), `view`, `follow`, `mode` (real|ideal),
- * `b`, `lock`, `t` (time scale), `gusts`, `cam` (camera chip). Read on load; written with
+ * URL state (TECH_SPEC §17, §13): query params `v` (wind), `view`, `follow`, `mode` (real|ideal),
+ * `b`, `lock`, `t` (time scale), `gusts`, `cam` (camera chip), `sound` and `vol` (0–1). Read on load; written with
  * history.replaceState, debounced 500 ms. Only values that differ from the defaults are
  * written, so a fresh visit has a clean URL. Anything malformed is ignored.
  */
@@ -35,6 +35,8 @@ export type UrlState = Partial<
     | 'timeScale'
     | 'gusts'
     | 'camChip'
+    | 'sound'
+    | 'volume'
   >
 >;
 
@@ -76,6 +78,10 @@ export function readUrlState(search: string): UrlState {
   if (gusts !== undefined) out.gusts = gusts;
   const cam = pick(q.get('cam'), CHIPS);
   if (cam) out.camChip = cam;
+  const sound = flag(q.get('sound'));
+  if (sound !== undefined) out.sound = sound;
+  const vol = num(q.get('vol'), 0, 1);
+  if (vol !== undefined) out.volume = Math.round(vol * 100) / 100;
   return out;
 }
 
@@ -94,6 +100,8 @@ export function writeUrlState(ui: Readonly<UiState>): string {
   if (ui.timeScale !== d.timeScale) q.set('t', String(ui.timeScale));
   if (ui.gusts) q.set('gusts', '1');
   if (ui.camChip) q.set('cam', ui.camChip);
+  if (ui.sound) q.set('sound', '1');
+  if (ui.volume !== d.volume) q.set('vol', String(Math.round(ui.volume * 100) / 100));
   const s = q.toString();
   return s ? `?${s}` : '';
 }

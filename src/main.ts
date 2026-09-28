@@ -125,9 +125,16 @@ const dev = import.meta.env.DEV ? createDevOverlay(uiRoot) : null;
 
 const bridge = createSimBridge(store, sim);
 const audio = createAudio();
+audio.setVolume(store.get().volume);
+// a shared link with sound=1 starts muted-by-browser until the first click or key press
+audio.setEnabled(store.get().sound);
 store.subscribe(
   (s) => s.sound,
   (on) => audio.setEnabled(on),
+);
+store.subscribe(
+  (s) => s.volume,
+  (v) => audio.setVolume(v),
 );
 /** one-shot UI/scene animations (§4.6); updated once per frame after the sim */
 const tweens = createTweens();
@@ -181,6 +188,7 @@ if (import.meta.env.DEV) {
       lightning,
       tour,
       urlSync,
+      audio,
       tweens,
     },
   });
@@ -215,7 +223,7 @@ const loop = createRafLoop((dt) => {
   post.render(dt);
   tour.update(dt);
   ui.update(snapshot, dt);
-  audio.update(snapshot, dt);
+  audio.update(snapshot, { flashes: lightning.flashes });
   dev?.frame(dt, renderer, snapshot, uiState);
   if (firstFrame) {
     firstFrame = false;
