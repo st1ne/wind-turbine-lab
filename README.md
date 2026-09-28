@@ -194,8 +194,8 @@ subpath.
 - Netlify: `netlify.toml` holds the build settings; Add new site → Import an existing project →
   GitHub → `wind-turbine-lab` → Deploy. Every push to `main` redeploys.
 - Cloudflare Pages / Vercel: build command `npm run build`, output directory `dist`.
-- `og:image` in `index.html` must be an absolute URL (link previews need one); set it to the
-  live site's address. Fill in `BRAND.name` / `BRAND.domain` in `src/config/brand.ts` when there
+- Live at https://st1ne.netlify.app/. `og:image` / `og:url` in `index.html` are absolute URLs on
+  that domain (link previews need them); update them if the site moves. Fill in `BRAND.name` / `BRAND.domain` in `src/config/brand.ts` when there
   is one (empty values are not rendered).
 - `public/og-image.jpg` (1200 × 630, Storm shutdown in Cutaway) was captured from the app; the
   `noscript` fallback shows it too.
