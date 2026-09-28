@@ -10,7 +10,7 @@ import { createSim } from '@/physics/sim';
 import { createAudio } from '@/audio/audio';
 import { createCamera, createControls } from '@/scene/camera';
 import { createCameraRig } from '@/scene/cameraRig';
-import { createLights } from '@/scene/lights';
+import { createLights, FOG_DENSITY } from '@/scene/lights';
 import type { SceneModule } from '@/scene/module';
 import { createPost } from '@/scene/post';
 import { createRenderer, MAX_DPR } from '@/scene/renderer';
@@ -31,6 +31,11 @@ import { createTipVortices } from '@/scene/fx/tipVortices';
 import { createSmokeRake } from '@/scene/environment/smokeRake';
 import { createScreens } from '@/scene/environment/screens';
 import { createVillage } from '@/scene/environment/village';
+import { createClouds } from '@/scene/environment/clouds';
+import { createBeacon } from '@/scene/fx/beacon';
+import { createLightning } from '@/scene/fx/lightning';
+import { createRain } from '@/scene/fx/rain';
+import { createTreeSway } from '@/scene/fx/trees';
 import { createSimBridge } from '@/state/simBridge';
 import { createStore } from '@/state/store';
 import { defaultUiState } from '@/state/uiState';
@@ -51,7 +56,7 @@ const renderer = createRenderer(canvas);
 renderer.info.autoReset = false;
 const scene = new Scene();
 scene.background = new Color(THEME.bg);
-scene.fog = new FogExp2(THEME.bg, 0.06);
+scene.fog = new FogExp2(THEME.bg, FOG_DENSITY);
 
 const camera = createCamera(window.innerWidth / window.innerHeight);
 const controls = createControls(camera, canvas);
@@ -61,12 +66,15 @@ const lights = createLights(renderer, scene);
 scene.add(lights.object3d);
 
 const turbine = createTurbine();
+const diorama = createDiorama();
+const clouds = createClouds();
+const lightning = createLightning(clouds);
 const modules: SceneModule[] = [
   createRoom(),
   createBench(),
   createRuler(),
   createFan(),
-  createDiorama(),
+  diorama,
   turbine,
 ];
 // after the turbine: views move, clip and fade the parts the turbine just animated
@@ -85,6 +93,12 @@ const fx: SceneModule[] = [
   createTipVortices(flow),
   createBetzDisk(turbine),
   createScreens(flow),
+  // weather and storm (§11)
+  createTreeSway(diorama),
+  createRain(),
+  clouds,
+  lightning,
+  createBeacon(),
   village,
   createPowerFlow(turbine, village),
   createLoadsViz(turbine),
@@ -128,6 +142,7 @@ if (import.meta.env.DEV) {
       turbine,
       views,
       flow,
+      lightning,
       tweens,
     },
   });
@@ -158,6 +173,7 @@ const loop = createRafLoop((dt) => {
   lights.update(snapshot, uiState, dt);
   for (const m of modules) m.update(snapshot, uiState, dt);
   renderer.info.reset();
+  post.setStorm(snapshot.stormLevel, snapshot.t);
   post.render(dt);
   ui.update(snapshot, dt);
   audio.update(snapshot, dt);

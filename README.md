@@ -66,8 +66,8 @@ src/
 
 ## Status
 
-Phases 0–10 done (scaffold, physics core, scene shell, turbine exterior, nacelle internals, UI
-shell, wiring and time, Whole / Cutaway / Exploded views, Follow modes and FX, Betz disk mode, charts). Modules not built yet throw `not implemented`.
+Phases 0–11 done (scaffold, physics core, scene shell, turbine exterior, nacelle internals, UI
+shell, wiring and time, Whole / Cutaway / Exploded views, Follow modes and FX, Betz disk mode, charts, weather and storm). Modules not built yet throw `not implemented`.
 
 Dev helpers (dev server only): backtick toggles the stats/snapshot overlay; `window.__lab`
 exposes sim, bridge (`jumpTo(V)`), store, scene and camera. All hotkeys from TECH_SPEC §3.9 are live; press H for the
@@ -99,3 +99,9 @@ Loss waterfall (§3.6): the spec quotes approximate steps; the app computes them
 BEM of the real blade without tip/hub loss and drag → with Prandtl loss → with drag (= Cp_max)
 → × η. Result: 59.3 → 58.1 → 55.2 → 51.4 → 47.1 → 44.4 % (spec: 55.3, 51.7, 44.5). The waterfall
 shows in Ideal-disk mode and for 6 s after leaving it.
+
+Storm (§11): everything follows s = smoothstep(18, 28, V̄) of the ramped mean wind. From Rated
+the Storm preset needs ≈ 3.3 s before s leaves 0, reaches 0.5 at ≈ 5.8 s and lightning (s > 0.8)
+at ≈ 7.3 s; it eases back the same way. The spec's "fog density + 0.4 s" is read as a relative
+change: the fog density goes from 0.06 to 0.11 scene units⁻¹. Rain, tree flutter and lightning
+run on sim time, so they freeze with the pause.

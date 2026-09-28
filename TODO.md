@@ -272,14 +272,14 @@ Add tip-vortex helices, the power-flow pulses to a village whose lights scale wi
 
 ## Phase 11: Weather and storm  (≈ 2.5 h)
 
-- [ ] `stormLevel = smoothstep(18, 28, V̄)` in the snapshot
-- [ ] `fx/rain.ts`: instanced streaks (4k desktop / 1.5k mobile), wind slant, bench splashes
-- [ ] `environment/clouds.ts`: color lerp and bob; `fx/lightning.ts`: flash every 6–14 s when s > 0.8 (disabled under reduced motion)
-- [ ] `fx/trees.ts`: vertex-shader sway, bend ∝ V² (capped at 18°), gust flutter
-- [ ] Room light, fog and exposure lerps with s; fan LED shows `STORM`
-- [ ] `fx/beacon.ts`: rotating amber beacon (red on TRIP)
-- [ ] Vignette + grain pass when s > 0.5
-- [ ] Gusts toggle (G) with `±gust` badge on the WIND card
+- [x] `stormLevel = smoothstep(18, 28, V̄)` in the snapshot
+- [x] `fx/rain.ts`: instanced streaks (4k desktop / 1.5k mobile), wind slant, bench splashes
+- [x] `environment/clouds.ts`: color lerp and bob; `fx/lightning.ts`: flash every 6–14 s when s > 0.8 (disabled under reduced motion)
+- [x] `fx/trees.ts`: vertex-shader sway, bend ∝ V² (capped at 18°), gust flutter
+- [x] Room light, fog and exposure lerps with s; fan LED shows `STORM`
+- [x] `fx/beacon.ts`: rotating amber beacon (red on TRIP)
+- [x] Vignette + grain pass when s > 0.5
+- [x] Gusts toggle (G) with `±gust` badge on the WIND card (done in Phase 5)
 
 **Done when:** the Storm preset feels like a storm within 3 s, then eases back smoothly when the wind drops.
 

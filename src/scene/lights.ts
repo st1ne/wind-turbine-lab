@@ -7,7 +7,9 @@
  *   environment: RoomEnvironment through PMREM, intensity 0.25
  */
 import {
+  Color,
   DirectionalLight,
+  FogExp2,
   Group,
   HemisphereLight,
   PMREMGenerator,
@@ -28,6 +30,11 @@ export interface Lights extends SceneModule<Group> {
 export const KEY_INTENSITY = 2.2;
 export const FILL_INTENSITY = 0.35;
 export const ENV_INTENSITY = 0.25;
+const RIM_INTENSITY = 1.4;
+/** scene fog density (scene units); a storm adds FOG_STORM · s */
+export const FOG_DENSITY = 0.06;
+const FOG_STORM = 0.05;
+const STORM_FILL = new Color('#3a4a8a');
 
 export function createLights(renderer: WebGLRenderer, scene: Scene): Lights {
   const group = new Group();
@@ -50,9 +57,10 @@ export function createLights(renderer: WebGLRenderer, scene: Scene): Lights {
   group.add(key, key.target);
 
   const fill = new HemisphereLight(PALETTE.fillSky, PALETTE.fillGround, FILL_INTENSITY);
+  const fillSky = new Color(PALETTE.fillSky);
   group.add(fill);
 
-  const rim = new SpotLight(PALETTE.rimLight, 1.4, 6, Math.PI / 7, 0.6, 1.2);
+  const rim = new SpotLight(PALETTE.rimLight, RIM_INTENSITY, 6, Math.PI / 7, 0.6, 1.2);
   rim.position.set(1.9, 1.3, -1.6);
   rim.target.position.set(0, 0.35, 0);
   group.add(rim, rim.target);
@@ -68,8 +76,15 @@ export function createLights(renderer: WebGLRenderer, scene: Scene): Lights {
     key,
     fill,
     rim,
-    update() {
-      // Storm dimming is driven in Phase 11.
+    update(s) {
+      // Storm (§4.2, §11): key × (1 − 0.65 s), fill hue toward #3a4a8a, denser fog,
+      // exposure − 0.15 s
+      const k = s.stormLevel;
+      key.intensity = KEY_INTENSITY * (1 - 0.65 * k);
+      fill.color.copy(fillSky).lerp(STORM_FILL, k);
+      rim.intensity = RIM_INTENSITY * (1 - 0.4 * k);
+      if (scene.fog instanceof FogExp2) scene.fog.density = FOG_DENSITY + FOG_STORM * k;
+      renderer.toneMappingExposure = 1 - 0.15 * k;
     },
     dispose() {
       envRT.dispose();

@@ -96,7 +96,9 @@ function hillGeometry(): BufferGeometry {
   // triangles were emitted clockwise seen from above; flip to face up
   const idx = g.getAttribute('position');
   for (let k = 0; k < idx.count; k += 3) {
-    const x1 = idx.getX(k + 1), y1 = idx.getY(k + 1), z1 = idx.getZ(k + 1);
+    const x1 = idx.getX(k + 1),
+      y1 = idx.getY(k + 1),
+      z1 = idx.getZ(k + 1);
     idx.setXYZ(k + 1, idx.getX(k + 2), idx.getY(k + 2), idx.getZ(k + 2));
     idx.setXYZ(k + 2, x1, y1, z1);
   }
@@ -104,7 +106,15 @@ function hillGeometry(): BufferGeometry {
   return g;
 }
 
-export function createDiorama(): SceneModule<Group> {
+export interface Diorama extends SceneModule<Group> {
+  /** tree trunks and crowns (instanced; fx/trees.ts bends them in the wind) */
+  readonly trees: { readonly trunks: InstancedMesh; readonly crowns: InstancedMesh };
+}
+
+/** full-scale tree height, m (trunk 4 m + crown to 14 m) */
+export const TREE_HEIGHT_M = 14;
+
+export function createDiorama(): Diorama {
   const group = new Group();
   group.name = 'diorama';
 
@@ -174,10 +184,9 @@ export function createDiorama(): SceneModule<Group> {
     TREE_SPOTS.length,
   );
   const m = new Matrix4();
+  // no yaw: the wind bend works along the geometry's +x, which must stay the wind direction
   const q = new Quaternion();
-  const up = new Vector3(0, 1, 0);
   TREE_SPOTS.forEach(([x, z, s], k) => {
-    q.setFromAxisAngle(up, k * 1.3);
     m.compose(new Vector3(x, heightAt(x, z) - 0.002, z), q, new Vector3(s, s, s));
     trunks.setMatrixAt(k, m);
     crowns.setMatrixAt(k, m);
@@ -188,6 +197,7 @@ export function createDiorama(): SceneModule<Group> {
 
   return {
     object3d: group,
+    trees: { trunks, crowns },
     update() {},
     dispose() {
       [hillGeo, padGeo, rockGeo, trunkGeo, crownGeo].forEach((g) => g.dispose());
