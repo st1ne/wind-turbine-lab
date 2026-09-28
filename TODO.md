@@ -220,15 +220,15 @@ eased offsets and dashed guide lines. Provide the BackSide fallback behind a fla
 
 ## Phase 8: Follow modes and FX ★  (≈ 4 h)
 
-- [ ] `follow.ts`: tag meshes by system; animate `uDim` (400 ms) per §9
-- [ ] `fx/smokeLines.ts` ★: 14 camera-facing ribbons (180 segments each), positions computed in the **vertex shader** from the actuator-disk formulas (§6.5), scrolling dashes via a precomputed travel-time attribute, color by u/V, downstream turbulence noise ∝ gusts/storm
-- [ ] `environment/smokeRake.ts`: comb of 14 nozzles at x = −2.5R with tiny emissive tips
-- [ ] Stream-tube outline (violet dashed) in Wind mode
-- [ ] `fx/tipVortices.ts`: 3 helices of radius r_tube(x), pitch p = u_conv·2π/ω, rotating with ψ, fading downstream
-- [ ] `fx/powerFlow.ts`: CatmullRom path blades → hub → LSS → gearbox → HSS → generator → converter → tower cable → transformer → pylon → village; amber pulses, count and speed ∝ P
-- [ ] `environment/village.ts`: 12 houses (instanced), window emissive, lit count = round(12·P/P_rated)
-- [ ] `fx/loadsViz.ts`: thrust arrow (coral, length ∝ T, flips when T < 0), tower bend ×25, blade flap ×2, stress color ramp on the tower, person figure 1.8 m
-- [ ] Labels per mode (§3.7 table)
+- [x] `follow.ts`: tag meshes by system; animate `uDim` (400 ms) per §9
+- [x] `fx/smokeLines.ts` ★: 14 camera-facing ribbons (180 segments each), positions computed in the **vertex shader** from the actuator-disk formulas (§6.5), scrolling dashes via a precomputed travel-time attribute, color by u/V, downstream turbulence noise ∝ gusts/storm
+- [x] `environment/smokeRake.ts`: comb of 14 nozzles at x = −2.5R with tiny emissive tips
+- [x] Stream-tube outline (violet dashed) in Wind mode
+- [x] `fx/tipVortices.ts`: 3 helices of radius r_tube(x), pitch p = u_conv·2π/ω, rotating with ψ, fading downstream
+- [x] `fx/powerFlow.ts`: CatmullRom path blades → hub → LSS → gearbox → HSS → generator → converter → tower cable → transformer → pylon → village; amber pulses, count and speed ∝ P
+- [x] `environment/village.ts`: 12 houses (instanced), window emissive, lit count = round(12·P/P_rated)
+- [x] `fx/loadsViz.ts`: thrust arrow (coral, length ∝ T, flips when T < 0), tower bend ×25, blade flap ×2, stress color ramp on the tower, person figure 1.8 m
+- [ ] Labels per mode (§3.7 table): moved to Phase 12, with the label system
 
 **Done when:** in Wind mode at 8 m/s the smoke visibly slows and widens to about 1.25R in the wake. In Power mode the pulses stop when parked. In Loads mode the tower visibly straightens when the storm feathers the blades.
 

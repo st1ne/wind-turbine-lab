@@ -4,7 +4,7 @@
  * the immutable snapshot each frame. The scene never mutates the sim.
  */
 import './ui/styles.css';
-import { Color, FogExp2, Scene } from 'three';
+import { Color, FogExp2, Group, Scene, Vector3 } from 'three';
 import { THEME } from '@/config/theme';
 import { createSim } from '@/physics/sim';
 import { createAudio } from '@/audio/audio';
@@ -21,6 +21,14 @@ import { createRoom } from '@/scene/environment/room';
 import { createRuler } from '@/scene/environment/ruler';
 import { createTurbine } from '@/scene/turbine/turbine';
 import { createViews } from '@/scene/views';
+import { createFollow } from '@/scene/follow';
+import { createFlow } from '@/scene/fx/flow';
+import { createLoadsViz } from '@/scene/fx/loadsViz';
+import { createPowerFlow } from '@/scene/fx/powerFlow';
+import { createSmokeLines } from '@/scene/fx/smokeLines';
+import { createTipVortices } from '@/scene/fx/tipVortices';
+import { createSmokeRake } from '@/scene/environment/smokeRake';
+import { createVillage } from '@/scene/environment/village';
 import { createSimBridge } from '@/state/simBridge';
 import { createStore } from '@/state/store';
 import { defaultUiState } from '@/state/uiState';
@@ -62,6 +70,23 @@ const modules: SceneModule[] = [
 // after the turbine: views move, clip and fade the parts the turbine just animated
 const views = createViews(turbine, camera);
 modules.push(views);
+
+// Follow modes and FX (§9). The flow state reads the rotor after views have moved it.
+turbine.object3d.updateMatrixWorld(true);
+const flow = createFlow(turbine);
+const rotorRest = turbine.rotor.object3d.getWorldPosition(new Vector3());
+const village = createVillage(turbine.object3d.localToWorld(new Vector3(6.5, 2.6, 4.5)));
+const fx: SceneModule[] = [
+  { object3d: new Group(), update: flow.update, dispose() {} },
+  createSmokeRake(rotorRest, flow.radius),
+  createSmokeLines(flow),
+  createTipVortices(flow),
+  village,
+  createPowerFlow(turbine, village),
+  createLoadsViz(turbine),
+  createFollow(),
+];
+modules.push(...fx);
 modules.forEach((m) => scene.add(m.object3d));
 
 const dev = import.meta.env.DEV ? createDevOverlay(uiRoot) : null;
@@ -87,7 +112,20 @@ const ui = createUi(uiRoot, store, {
 if (import.meta.env.DEV) {
   // handle for debugging in the browser console
   Object.assign(window, {
-    __lab: { sim, bridge, scene, camera, controls, renderer, rig, store, turbine, views, tweens },
+    __lab: {
+      sim,
+      bridge,
+      scene,
+      camera,
+      controls,
+      renderer,
+      rig,
+      store,
+      turbine,
+      views,
+      flow,
+      tweens,
+    },
   });
 }
 
