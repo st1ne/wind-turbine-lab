@@ -16,7 +16,7 @@ import {
   V_RESTART,
 } from '@/config/turbine';
 import { A_VISUAL_MAX, BETZ_SWEET_SPOT, cpIdeal } from '@/physics/actuatorDisk';
-import { fixed, fmtDeg, fmtKN, fmtKW, fmtMs, fmtMW, fmtPct, fmtRpm } from '@/physics/format';
+import { fixed, fmtDeg, fmtKN, fmtKW, fmtMs, fmtMW, fmtPct, fmtRpm, NBSP } from '@/physics/format';
 import {
   lockedFlatThrustN,
   runawayRpm,
@@ -37,6 +37,36 @@ export interface TemplateContext {
 }
 
 export { BETZ_SWEET_SPOT };
+
+/** below this the text says "no wind" instead of quoting 0 kW, m/s */
+const STILL_AIR_M_S = 0.5;
+/** in region 3 but not pitching yet (just above rated): the "full power" text, deg */
+const PITCHING_DEG = 0.5;
+
+/** Panel title for the current state; SPILL reads "Full power" until the blades pitch. */
+export function regimeTitle(ctx: TemplateContext): string {
+  const { s } = ctx;
+  switch (s.regime) {
+    case 'CALM':
+      return 'Waiting for wind';
+    case 'CHASE':
+      return 'Chasing the wind';
+    case 'CAP':
+      return 'Speed capped';
+    case 'SPILL':
+      return s.beta < PITCHING_DEG ? 'Full power' : 'Spilling the excess';
+    case 'SHUTDOWN':
+      return 'Storm shutdown';
+    case 'PARKED':
+      return 'Parked';
+    case 'STARTUP':
+      return 'Starting up';
+    case 'TRIP':
+      return s.state === 'TRIPPED' ? 'Tripped' : 'Emergency trip';
+    case 'BETZ':
+      return 'Ideal disk';
+  }
+}
 
 const CONCEPTS: readonly (readonly [RegExp, string])[] = [
   [/\bwind\b/i, 'c-wind'],
@@ -85,21 +115,27 @@ function body(ctx: TemplateContext): string {
   const peak = Math.max(ctx.tripPeakOmegaRad ?? 0, s.omega);
   switch (s.regime) {
     case 'CALM':
+      if (s.V < STILL_AIR_M_S) {
+        return paragraph`No wind, nothing to catch. The rotor stands still and waits for ${b(fmtMs(V_CUT_IN, 0))}.`;
+      }
       return paragraph`At ${b(fmtMs(s.V))} the wind carries only ${b(fmtKW(pWind))} through the ${fixed(2 * RADIUS_M, 0)} m disk: not enough to beat friction. The rotor idles and waits for ${b(fmtMs(V_CUT_IN, 0))}.`;
     case 'CHASE':
-      return paragraph`${b(mw1(pWind))} of wind flows through the disk. The rotor keeps its tips at ${b(`${fixed(s.lambda, 1)}×`)} the wind speed (${fixed(tipSpeedMs(s.omega), 0)} m/s), the ratio where it catches the most: ${b(fmtPct(s.cp, 1))}, or ${fmtPct(s.cp / BETZ)} of the Betz limit. ${b(fmtMW(s.Pel))} of power reaches the grid.`;
+      return paragraph`${b(mw1(pWind))} of wind flows through the disk. The rotor keeps its tips at ${b(`${fixed(s.lambda, 1)}×`)} the wind speed (${fmtMs(tipSpeedMs(s.omega), 0)}), the ratio where it catches the most: ${b(fmtPct(s.cp, 1))}, or ${fmtPct(s.cp / BETZ)} of the Betz limit. ${b(fmtMW(s.Pel))} of power reaches the grid.`;
     case 'CAP':
       return paragraph`The rotor has hit ${b(fmtRpm(OMEGA_RATED_RAD))}. Tips at ${b(fmtMs(OMEGA_RATED_RAD * RADIUS_M, 0))} are the limit for noise and erosion, so the generator leans on the shaft harder instead. ${b(fmtMW(s.Pel))} of power.`;
     case 'SPILL':
+      if (s.beta < PITCHING_DEG) {
+        return paragraph`Full power. ${b(mw1(pWind))} of wind arrives and the generator takes its rated ${b(fmtMW(P_RATED_W))}. Any more wind and the blades start to twist out of it. Thrust is near its peak: ${b(fmtKN(s.T))}.`;
+      }
       return paragraph`Too much wind: ${b(mw1(pWind))} arrives, the generator takes only ${b(fmtMW(P_RATED_W))}. The blades twist ${b(fmtDeg(s.beta))} out of the wind and let the rest blow through. ${thrustVersusRated(s.T)}`;
     case 'SHUTDOWN':
       return paragraph`Storm, ${b(fmtMs(s.V))}. The controller feathers the blades toward ${b(fmtDeg(90, 0))}, edge-on, at ${fmtDeg(PITCH_RATE_DEG_S.SHUTDOWN, 0)}/s. Pitch ${b(fmtDeg(s.beta))}, rotor ${b(fmtRpm(s.omega))}. Once it slows, the brake closes.`;
     case 'PARKED':
       return paragraph`Parked and feathered. The blades slice the storm edge-on: rotor thrust is ${b(fmtKN(s.T))}, not the ${b(fmtKN(lockedFlatThrustN(s.V)))} it would be with blades flat to the wind. It restarts below ${b(fmtMs(V_RESTART, 0))}.`;
     case 'STARTUP':
-      return paragraph`Wind back under ${fmtMs(V_RESTART, 0)}. Blades pitch in at ${fmtDeg(PITCH_RATE_DEG_S.STARTUP, 0)}/s, the rotor spins up (${b(fmtRpm(s.omega))}), and the generator connects at ${fmtPct(STARTUP_CONNECT)} speed.`;
+      return paragraph`${s.Vmean < V_RESTART ? `Wind back under ${fmtMs(V_RESTART, 0)}.` : 'Restarting after the reset.'} Blades pitch in at ${fmtDeg(PITCH_RATE_DEG_S.STARTUP, 0)}/s, the rotor spins up (${b(fmtRpm(s.omega))}), and the generator connects at ${fmtPct(STARTUP_CONNECT)} speed.`;
     case 'TRIP':
-      return paragraph`Overspeed! With pitch locked the rotor hit ${b(fmtRpm(peak))} (${b(fmtPct(peak / OMEGA_RATED_RAD))}). Emergency: blades to 90° at ${fmtDeg(PITCH_RATE_DEG_S.TRIP, 0)}/s and brake on. Left alone at ${fmtMs(s.V)} it would try for ${b(`~${fixed(runawayRpm(s.V), 0)} rpm`)}, tips at Mach ${b(fixed(runawayTipMach(s.V), 2))}. Blades fail long before that.`;
+      return paragraph`Overspeed! With pitch locked the rotor hit ${b(fmtRpm(peak))} (${b(fmtPct(peak / OMEGA_RATED_RAD))}). Emergency: blades to 90° at ${fmtDeg(PITCH_RATE_DEG_S.TRIP, 0)}/s and brake on. Left alone at ${fmtMs(s.V)} it would try for ${b(`~${fixed(runawayRpm(s.V), 0)}${NBSP}rpm`)}, tips at Mach ${b(fixed(runawayTipMach(s.V), 2))}. Blades fail long before that.${s.state === 'TRIPPED' ? ' The rotor has stopped: press Reset (X) to restart.' : ''}`;
     case 'BETZ': {
       const cpb = cpIdeal(ctx.wakeB);
       const text = paragraph`Slow the wind too little and most of it passes unused. Stop it entirely and nothing flows through. At ${b(`b = ${fixed(ctx.wakeB, 2)}`)} the disk takes ${b(fmtPct(cpb, 1))}. The peak, ${b(`16/27 = ${fmtPct(BETZ, 1)}`)}, sits at b = 1/3 (Betz, 1920).`;
@@ -107,6 +143,9 @@ function body(ctx: TemplateContext): string {
         return `${text} <span class="c-ok">That's the Betz limit: no rotor can do better.</span>`;
       }
       // a = (1 − b)/2 beyond A_VISUAL_MAX: momentum theory no longer holds
+      if (ctx.wakeB > 0.99) {
+        return `${text} At b = 1 the disk doesn't slow the air at all, so it takes nothing.`;
+      }
       if (ctx.wakeB < 1 - 2 * A_VISUAL_MAX) {
         return `${text} Below <b>b = ${fixed(1 - 2 * A_VISUAL_MAX, 2)}</b> the simple theory breaks down: the air piles up behind the disk and churns (the <span class="c-loads">turbulent wake state</span>).`;
       }

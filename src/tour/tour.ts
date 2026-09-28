@@ -9,7 +9,7 @@ import type { SimBridge } from '@/state/simBridge';
 import type { Store } from '@/state/store';
 import { presetFor, type TimeScale, type UiState } from '@/state/uiState';
 import { TOUR_STEPS, TOUR_TIME_SCALE, type TourStep } from '@/tour/steps';
-import { h } from '@/ui/dom';
+import { fadeShow, h } from '@/ui/dom';
 
 export interface TourDeps {
   readonly store: Store<UiState>;
@@ -136,7 +136,7 @@ export function createTour(deps: TourDeps): Tour {
       if (running) return;
       running = true;
       timeScaleBefore = store.get().timeScale;
-      bar.hidden = false;
+      fadeShow(bar, true);
       setPaused(false);
       enter(0);
     },
@@ -145,7 +145,7 @@ export function createTour(deps: TourDeps): Tour {
       running = false;
       index = -1;
       setPaused(false);
-      bar.hidden = true;
+      fadeShow(bar, false);
       apply({ tourStep: -1, timeScale: timeScaleBefore });
     },
     toggle() {

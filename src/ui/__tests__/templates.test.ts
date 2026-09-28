@@ -3,7 +3,7 @@ import { createSim } from '@/physics/sim';
 import type { Regime, SimSnapshot } from '@/physics/types';
 import { cpIdeal } from '@/physics/actuatorDisk';
 import { fmtPct } from '@/physics/format';
-import { renderTemplate } from '@/ui/templates';
+import { regimeTitle, renderTemplate } from '@/ui/templates';
 
 function steady(V: number, idealDisk = false): SimSnapshot {
   const sim = createSim();
@@ -46,7 +46,7 @@ describe('explanation templates (§3.5)', () => {
   it('quotes the live numbers', () => {
     const html = renderTemplate({ s: steady(20), wakeB: 1, pitchLockDeg: null });
     expect(html).toContain('<b>17.5°</b>');
-    expect(html).toContain('<b>725 kN</b>');
+    expect(html).toContain('<b>725\u00a0kN</b>');
   });
 
   it('adds the pitch-lock sentence and the Betz sweet spot', () => {
@@ -73,5 +73,38 @@ describe('Betz mode text (§10)', () => {
     expect(renderTemplate({ s: betz, wakeB: 1 / 3, pitchLockDeg: null })).not.toContain(
       'turbulent',
     );
+  });
+});
+
+describe('copy at the edges (Phase 15)', () => {
+  const text = (s: ReturnType<typeof steady>, wakeB = 1) =>
+    renderTemplate({ s, wakeB, pitchLockDeg: null })
+      .replace(/<[^>]+>/g, '')
+      .replace(/\u00a0/g, ' ');
+  it('0 m/s says there is no wind instead of quoting 0 kW', () => {
+    expect(text(steady(0))).toMatch(/^No wind/);
+  });
+  it('just above rated, before the blades pitch, it reads as full power', () => {
+    const s = steady(11);
+    expect(s.regime).toBe('SPILL');
+    expect(text(s)).toMatch(/^Full power/);
+    expect(text(s)).not.toContain('0.0°');
+    expect(regimeTitle({ s, wakeB: 1, pitchLockDeg: null })).toBe('Full power');
+    expect(text(steady(15))).toMatch(/^Too much wind/);
+  });
+  it('a restart after a reset in strong wind does not claim the wind dropped', () => {
+    const s = { ...steady(22), state: 'STARTUP' as const, regime: 'STARTUP' as const };
+    expect(text(s)).toMatch(/^Restarting after the reset/);
+    const calm = { ...steady(15), state: 'STARTUP' as const, regime: 'STARTUP' as const };
+    expect(text(calm)).toMatch(/^Wind back under 20 m\/s/);
+  });
+  it('a tripped rotor points at the Reset button', () => {
+    const s = { ...steady(22), state: 'TRIPPED' as const, regime: 'TRIP' as const };
+    expect(text(s)).toContain('press Reset (X)');
+    expect(regimeTitle({ s, wakeB: 1, pitchLockDeg: null })).toBe('Tripped');
+  });
+  it('b = 1 explains why the disk takes nothing', () => {
+    const s = { ...steady(8), regime: 'BETZ' as const };
+    expect(text(s, 1)).toContain("doesn't slow the air at all");
   });
 });

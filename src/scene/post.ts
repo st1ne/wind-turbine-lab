@@ -1,5 +1,5 @@
 /**
- * Post chain (TECH_SPEC §4.4, §11): RenderPass → UnrealBloomPass(0.55, 0.42, 0.82) → SMAA →
+ * Post chain (TECH_SPEC §4.4, §11): RenderPass → UnrealBloomPass(0.55, 0.42, 1.1) → SMAA →
  * storm vignette + grain (only enabled above storm level 0.5) → OutputPass.
  * The OutputPass applies the renderer's tone mapping and sRGB conversion. The scene target
  * carries a stencil buffer for the cutaway caps.
@@ -19,7 +19,13 @@ import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
-export const BLOOM = { strength: 0.55, radius: 0.42, threshold: 0.82 } as const;
+/**
+ * Bloom (§4.4: 0.55 / 0.42 / 0.82, tuned in Phase 15): at threshold 0.82 the key light's
+ * specular highlight on the white spinner and nacelle bloomed into a halo. 1.1 keeps bloom to
+ * the parts meant to glow, which all use emissive intensities ≥ 3 (fan ring, aviation light,
+ * windows, generator windings, brake disc, beacon, pulses).
+ */
+export const BLOOM = { strength: 0.55, radius: 0.42, threshold: 1.1 } as const;
 
 /** Storm look (§11): vignette and 1 % film grain fade in above storm level 0.5. */
 const STORM_SHADER = {

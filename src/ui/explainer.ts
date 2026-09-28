@@ -4,22 +4,10 @@
  * region updated at most once per 2 s (§16).
  */
 import { h } from '@/ui/dom';
-import { renderTemplate, type TemplateContext } from '@/ui/templates';
+import { regimeTitle, renderTemplate, type TemplateContext } from '@/ui/templates';
 
 const THROTTLE_S = 0.15;
 const SR_THROTTLE_S = 2;
-
-const REGIME_TITLES: Record<TemplateContext['s']['regime'], string> = {
-  CALM: 'Waiting for wind',
-  CHASE: 'Chasing the wind',
-  CAP: 'Speed capped',
-  SPILL: 'Spilling the excess',
-  SHUTDOWN: 'Storm shutdown',
-  PARKED: 'Parked',
-  STARTUP: 'Starting up',
-  TRIP: 'Emergency trip',
-  BETZ: 'Ideal disk',
-};
 
 export interface Explainer {
   el: HTMLElement;
@@ -29,6 +17,8 @@ export interface Explainer {
 export function createExplainer(): Explainer {
   const title = h('span', { class: 'explainer-title' });
   const text = h('p', { class: 'explainer-text' });
+  // the body animates its height, so a longer or shorter paragraph never jolts the chart below
+  const body = h('div', { class: 'explainer-body' }, text);
   const live = h('p', { class: 'sr-only', 'aria-live': 'polite' });
   const el = h(
     'section',
@@ -39,14 +29,14 @@ export function createExplainer(): Explainer {
       h('span', { class: 'overline' }, 'What is happening'),
       title,
     ),
-    text,
+    body,
     live,
   );
 
   let acc = THROTTLE_S;
   let srAcc = SR_THROTTLE_S;
   let lastHtml = '';
-  let lastRegime = '';
+  let lastTitle = '';
 
   return {
     el,
@@ -59,9 +49,11 @@ export function createExplainer(): Explainer {
       if (html === lastHtml) return;
       lastHtml = html;
       text.innerHTML = html;
-      if (ctx.s.regime !== lastRegime) {
-        lastRegime = ctx.s.regime;
-        title.textContent = REGIME_TITLES[ctx.s.regime];
+      body.style.height = `${text.offsetHeight}px`;
+      const t = regimeTitle(ctx);
+      if (t !== lastTitle) {
+        lastTitle = t;
+        title.textContent = t;
         el.dataset.regime = ctx.s.regime;
         // restart the soft fade so a regime change reads as a new paragraph
         text.classList.remove('fade-in');

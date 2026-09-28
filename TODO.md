@@ -319,12 +319,12 @@ Add tip-vortex helices, the power-flow pulses to a village whose lights scale wi
 
 ## Phase 15: Polish ★  (≈ 3 h)
 
-- [ ] Motion pass: every discrete change animates (§4.6); no physics easing
-- [ ] Bloom and exposure tuning so only intended parts glow (fan ring, aviation light, windows, generator, smoke)
-- [ ] Idle drift, camera chip flights, loader → first-frame dolly-in
-- [ ] Typography pass: tabular numbers, no layout shift, consistent units (`m/s`, `MW`, `kN`, `rpm`, `°`)
-- [ ] Copy pass: every template reads naturally at edge values (0 m/s, 35 m/s, b = 0, b = 1)
-- [ ] Compare side by side with the reference screenshots: panel spacing, pill style, label style, headline scale
+- [x] Motion pass: every discrete change animates (§4.6); no physics easing
+- [x] Bloom and exposure tuning so only intended parts glow (fan ring, aviation light, windows, generator, smoke)
+- [x] Idle drift, camera chip flights, loader → first-frame dolly-in
+- [x] Typography pass: tabular numbers, no layout shift, consistent units (`m/s`, `MW`, `kN`, `rpm`, `°`)
+- [x] Copy pass: every template reads naturally at edge values (0 m/s, 35 m/s, b = 0, b = 1)
+- [ ] Compare side by side with the reference screenshots: panel spacing, pill style, label style, headline scale (no reference screenshots in the repo; needs them)
 
 ---
 

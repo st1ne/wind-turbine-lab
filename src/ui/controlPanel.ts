@@ -5,7 +5,7 @@
  * Every control writes to the store; the panel mirrors the store, never the other way round.
  */
 import { V_CUT_IN, V_CUT_OUT } from '@/config/turbine';
-import { fixed, fmtMs } from '@/physics/format';
+import { fixed, fmtMs, NBSP } from '@/physics/format';
 import type { SimSnapshot } from '@/physics/types';
 import { beaufort } from '@/physics/wind';
 import type { Store } from '@/state/store';
@@ -118,7 +118,7 @@ export function createControlPanel(store: Store<UiState>, actions: PanelActions)
     min: 0,
     max: 1,
     step: 0.005,
-    readout: (v) => `b = ${fixed(v, 2)} V`,
+    readout: (v) => `b = ${fixed(v, 2)}${NBSP}V`,
     valueText: (v) => `wake at ${fixed(v * 100, 0)} percent of the wind speed`,
     onInput: (v) => set({ wakeB: v }),
     ticks: [{ value: 1 / 3, label: 'Betz' }],

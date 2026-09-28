@@ -53,6 +53,7 @@ import {
   fmtMW,
   fmtRpm,
   grouped,
+  NBSP,
 } from '@/physics/format';
 import {
   baseMomentNm,
@@ -199,7 +200,7 @@ export function createLabelDefs(
       priority: 7,
       anchor: local(blade, 0, RADIUS_M, 0),
       value: (s) =>
-        `${fmtMs(tipSpeedMs(s.omega), 0)} · ${fixed(tipSpeedMs(s.omega) * 3.6, 0)} km/h`,
+        `${fmtMs(tipSpeedMs(s.omega), 0)} · ${fixed(tipSpeedMs(s.omega) * 3.6, 0)}${NBSP}km/h`,
       visible: (ui) => real(ui) && inFollow('all', 'wind')(ui),
     },
     {
@@ -244,7 +245,7 @@ export function createLabelDefs(
       tone: 'power',
       priority: 9,
       anchor: at(drivetrain.anchors.generator),
-      value: (s) => `${grouped(s.omega * GEAR_RATIO * RPM)} rpm · ${fmtMW(s.Pel)}`,
+      value: (s) => `${grouped(s.omega * GEAR_RATIO * RPM)}${NBSP}rpm · ${fmtMW(s.Pel)}`,
       visible: (ui) => inView(ui, 'cutaway', 'exploded') || ui.follow === 'power',
       ignore: [nacelleProxy],
     },
@@ -254,7 +255,7 @@ export function createLabelDefs(
       tone: 'power',
       priority: 5,
       anchor: at(drivetrain.anchors.converter),
-      value: () => `${grouped(CONVERTER_VOLTAGE_V)} V`,
+      value: () => `${grouped(CONVERTER_VOLTAGE_V)}${NBSP}V`,
       visible: (ui) => inView(ui, 'exploded'),
     },
     {
@@ -283,7 +284,9 @@ export function createLabelDefs(
       priority: 10,
       anchor: local(rotor.object3d, SPINNER.noseX - 0.4, 0, 0),
       value: (s) =>
-        s.T < 0 ? `${fmtKN(-s.T)} reverse` : `${fmtKN(s.T)} ≈ ${grouped(s.T / G_M_S2 / 1000)} t`,
+        s.T < 0
+          ? `${fmtKN(-s.T)} reverse`
+          : `${fmtKN(s.T)} ≈ ${grouped(s.T / G_M_S2 / 1000)}${NBSP}t`,
       visible: inFollow('loads'),
     },
     {

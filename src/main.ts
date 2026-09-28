@@ -150,6 +150,8 @@ ui.layout.chips.append(createChips(store, (p) => rig.flyTo(p)));
 rig.onUserInput(() => store.set({ camChip: null }));
 const startChip = CHIPS.find((c) => c.id === store.get().camChip);
 if (startChip) rig.flyTo(startChip.preset, 0);
+// first frame: the camera dollies in from a wide shot (§2), unless a link chose a view
+else rig.flyTo('wide', 0);
 
 // URL sync and share (§17)
 const urlSync = installUrlSync(store);
@@ -180,6 +182,7 @@ if (import.meta.env.DEV) {
       camera,
       controls,
       renderer,
+      post,
       rig,
       store,
       turbine,
@@ -228,6 +231,7 @@ const loop = createRafLoop((dt) => {
   if (firstFrame) {
     firstFrame = false;
     ui.firstFrame();
+    if (!startChip) rig.flyTo('default', 2.2);
   }
 });
 loop.start();

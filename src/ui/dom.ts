@@ -36,3 +36,33 @@ export function icon(paths: string): SVGSVGElement {
 export function keyHint(keys: string): HTMLElement {
   return h('span', { class: 'key-hint mono', 'aria-hidden': 'true' }, keys);
 }
+
+const FADE_MS = 220;
+const fadeTimers = new WeakMap<HTMLElement, number>();
+
+/**
+ * Show or hide with a short fade (§4.6: every discrete change animates). Hidden elements end
+ * up `hidden`, so they leave the layout and the accessibility tree.
+ */
+export function fadeShow(el: HTMLElement, on: boolean): void {
+  window.clearTimeout(fadeTimers.get(el));
+  if (on) {
+    if (!el.hidden && !el.classList.contains('fade-out')) return;
+    el.classList.remove('fade-out');
+    el.hidden = false;
+    el.classList.remove('fade-in');
+    void el.offsetWidth;
+    el.classList.add('fade-in');
+  } else {
+    if (el.hidden) return;
+    el.classList.remove('fade-in');
+    el.classList.add('fade-out');
+    fadeTimers.set(
+      el,
+      window.setTimeout(() => {
+        el.hidden = true;
+        el.classList.remove('fade-out');
+      }, FADE_MS),
+    );
+  }
+}

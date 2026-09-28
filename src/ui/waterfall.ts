@@ -6,7 +6,7 @@
  */
 import { fixed } from '@/physics/format';
 import { lossWaterfall } from '@/physics/losses';
-import { h } from '@/ui/dom';
+import { fadeShow, h } from '@/ui/dom';
 
 export const WATERFALL_LINGER_S = 6;
 
@@ -47,12 +47,7 @@ export function createWaterfall(): Waterfall {
     setVisible(v) {
       if (v === visible) return;
       visible = v;
-      el.hidden = !v;
-      if (v) {
-        el.classList.remove('fade-in');
-        void el.offsetWidth;
-        el.classList.add('fade-in');
-      }
+      fadeShow(el, v);
     },
   };
 }

@@ -4,7 +4,7 @@
  */
 import { BETZ } from '@/config/turbine';
 import { cpIdeal } from '@/physics/actuatorDisk';
-import { fixed, fmtDeg, fmtMs, fmtMW, fmtPct, fmtRpm } from '@/physics/format';
+import { fixed, fmtDeg, fmtMs, fmtMW, fmtPct, fmtRpm, NBSP } from '@/physics/format';
 import type { SimSnapshot } from '@/physics/types';
 import { beaufort } from '@/physics/wind';
 import type { RotorMode } from '@/state/uiState';
@@ -99,7 +99,7 @@ export function createStatCards(): StatCards {
         setText(captured.label, ideal ? 'Cp(b)' : 'CAPTURED');
         setText(
           captured.sub,
-          ideal ? `wake at b = ${fixed(ctx.wakeB, 2)} V` : `Betz max ${fmtPct(BETZ, 1)}`,
+          ideal ? `wake at b = ${fixed(ctx.wakeB, 2)}${NBSP}V` : `Betz max ${fmtPct(BETZ, 1)}`,
         );
       }
       vT.update(dt);

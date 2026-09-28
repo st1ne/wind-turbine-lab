@@ -370,12 +370,16 @@ button {
   color: var(--ideal);
 }
 
+.explainer-body {
+  overflow: hidden;
+  transition: height 0.25s var(--ease-out);
+}
+
 .explainer-text {
   margin: 0;
   font-size: 13.5px;
   line-height: 1.55;
   color: #c5cbd9;
-  min-height: 6.2em;
 }
 
 .explainer-text b {
@@ -1329,4 +1333,9 @@ kbd {
 .volume:focus-visible {
   outline: 2px solid var(--wind);
   outline-offset: 2px;
+}
+
+.fade-out {
+  opacity: 0;
+  transition: opacity 0.22s var(--ease-out);
 }

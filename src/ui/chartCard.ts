@@ -85,6 +85,10 @@ export function createChartCard(store: Store<UiState>): ChartCard {
         });
         redraw.force();
         describe.force();
+        // a tab switch cross-fades instead of snapping
+        canvas.classList.remove('fade-in');
+        void canvas.offsetWidth;
+        canvas.classList.add('fade-in');
       }
       if (!redraw.ready(dt)) return;
       const view = views[ui.chart];

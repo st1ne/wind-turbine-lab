@@ -66,8 +66,8 @@ src/
 
 ## Status
 
-Phases 0–14 done (scaffold, physics core, scene shell, turbine exterior, nacelle internals, UI
-shell, wiring and time, Whole / Cutaway / Exploded views, Follow modes and FX, Betz disk mode, charts, weather and storm, 3D labels, tour, camera chips, URL state and sharing, sound). Modules not built yet throw `not implemented`.
+Phases 0–15 done (scaffold, physics core, scene shell, turbine exterior, nacelle internals, UI
+shell, wiring and time, Whole / Cutaway / Exploded views, Follow modes and FX, Betz disk mode, charts, weather and storm, 3D labels, tour, camera chips, URL state and sharing, sound, polish). Modules not built yet throw `not implemented`.
 
 Dev helpers (dev server only): backtick toggles the stats/snapshot overlay; `window.__lab`
 exposes sim, bridge (`jumpTo(V)`), store, scene and camera. All hotkeys from TECH_SPEC §3.9 are live; press H for the
@@ -113,3 +113,8 @@ Sound (§13): off by default and synthesised with WebAudio (no files). A volume 
 to the speaker button; the gain follows volume² so the slider feels even, and a limiter guards
 the output. `sound` and `vol` are part of the URL; a link with `sound=1` stays silent until the
 first click or key press, because browsers only start audio after a user gesture.
+
+Polish (Phase 15): bloom threshold 1.1 instead of 0.82 (the white spinner's highlight bloomed
+into a halo; everything meant to glow has emissive intensity ≥ 3); numbers and units are joined
+by no-break spaces; the camera dollies in from a wide shot after the loader unless a link picks
+a camera chip.
