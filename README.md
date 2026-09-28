@@ -191,7 +191,9 @@ subpath.
 - GitHub Pages: `.github/workflows/pages.yml` tests, builds and publishes on every push to
   `main`. One-time setup: Settings → Pages → Build and deployment → Source: **GitHub Actions**.
   The site is served at https://st1ne.github.io/wind-turbine-lab/.
-- Cloudflare Pages / Netlify / Vercel: build command `npm run build`, output directory `dist`.
+- Netlify: `netlify.toml` holds the build settings; Add new site → Import an existing project →
+  GitHub → `wind-turbine-lab` → Deploy. Every push to `main` redeploys.
+- Cloudflare Pages / Vercel: build command `npm run build`, output directory `dist`.
 - `og:image` in `index.html` is an absolute URL on GitHub Pages (link previews need one); change
   it if the site moves. Fill in `BRAND.name` / `BRAND.domain` in `src/config/brand.ts` when there
   is one (empty values are not rendered).
