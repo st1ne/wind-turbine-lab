@@ -185,14 +185,16 @@ any preset, it reaches the operating point in 10–30 s.
 ## Launch
 
 `npm run build` writes a static site to `dist/` (≈ 310 kB gzipped JS, fonts from Google Fonts).
-Any static host works; none is configured in this repository:
+Asset paths are relative (`base: './'`), so the same build works at a domain root or under a
+subpath.
 
+- GitHub Pages: `.github/workflows/pages.yml` tests, builds and publishes on every push to
+  `main`. One-time setup: Settings → Pages → Build and deployment → Source: **GitHub Actions**.
+  The site is served at https://st1ne.github.io/wind-turbine-lab/.
 - Cloudflare Pages / Netlify / Vercel: build command `npm run build`, output directory `dist`.
-- The app uses absolute asset paths, so serve it from the domain root (for a subpath such as
-  GitHub Pages, set `base` in `vite.config.ts`).
-- Once the domain is known, make `og:image` an absolute URL in `index.html` (link previews
-  need one) and fill in `BRAND.name` / `BRAND.domain` in `src/config/brand.ts` (empty values
-  are not rendered).
+- `og:image` in `index.html` is an absolute URL on GitHub Pages (link previews need one); change
+  it if the site moves. Fill in `BRAND.name` / `BRAND.domain` in `src/config/brand.ts` when there
+  is one (empty values are not rendered).
 - `public/og-image.jpg` (1200 × 630, Storm shutdown in Cutaway) was captured from the app; the
   `noscript` fallback shows it too.
 - The 20–30 s launch screen capture (Breeze → Betz peak → Storm feather → Cutaway power flow)

@@ -346,7 +346,7 @@ Add tip-vortex helices, the power-flow pulses to a village whose lights scale wi
 - [x] Traceability review: every on-screen number maps to a physics function (make a table in README)
 - [~] Lighthouse: Perf ≥ 85, A11y ≥ 95, BP ≥ 95 (A11y 100, BP 96; Perf 35–43 under SwiftShader, rerun on a GPU)
 - [x] OG image 1200×630 (Storm + Cutaway), meta tags, favicon, `noscript` fallback
-- [ ] Deploy (Vercel / Netlify / Cloudflare Pages); optional single-file build via `vite-plugin-singlefile` (static `dist/` is ready, steps in README; needs a hosting account)
+- [ ] Deploy (Vercel / Netlify / Cloudflare Pages); optional single-file build via `vite-plugin-singlefile` (GitHub Pages workflow added; enable Pages with Source: GitHub Actions)
 - [ ] Record a 20–30 s screen capture for the launch post: Breeze → Betz peak → Storm feather → Cutaway power flow (needs a GPU machine)
 
 ---
