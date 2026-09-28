@@ -55,9 +55,10 @@ describe('formatting and Beaufort', () => {
   it('fixed decimals, no negative zero', () => {
     expect(fixed(-0.001, 1)).toBe('0.0');
     expect(fixed(-3.14, 1)).toBe('−3.1');
-    expect(fmtMW(5e6)).toBe('5.00 MW');
-    expect(fmtKN(725e3)).toBe('725 kN');
-    expect(fmtMs(11.4)).toBe('11.4 m/s');
+    // a no-break space keeps number and unit on one line
+    expect(fmtMW(5e6)).toBe('5.00\u00a0MW');
+    expect(fmtKN(725e3)).toBe('725\u00a0kN');
+    expect(fmtMs(11.4)).toBe('11.4\u00a0m/s');
   });
   it('Beaufort scale', () => {
     expect(beaufort(0.2)).toEqual({ force: 0, name: 'calm' });

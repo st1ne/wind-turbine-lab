@@ -25,6 +25,8 @@ export interface UiState {
   gusts: boolean;
   chart: ChartTab;
   sound: boolean;
+  /** master volume 0–1 (applies while sound is on) */
+  volume: number;
   /** -1 = tour not running */
   tourStep: number;
   paused: boolean;
@@ -39,6 +41,29 @@ export const PRESET_WIND: Record<Exclude<WeatherPreset, null>, number> = {
   storm: 30,
 };
 
+/** Wind slider range, m/s (§3.4). */
+export const WIND_MAX_M_S = 35;
+
+/** The preset whose wind matches v (to keep the Weather pill in sync with the slider). */
+export function presetFor(v: number): WeatherPreset {
+  for (const [name, wind] of Object.entries(PRESET_WIND) as [
+    Exclude<WeatherPreset, null>,
+    number,
+  ][]) {
+    if (Math.abs(v - wind) < 0.05) return name;
+  }
+  return null;
+}
+
+export const VIEW_ORDER: readonly ViewMode[] = ['whole', 'cutaway', 'exploded'];
+/** Chart tabs cycled by C; 'betz' is forced in Ideal-disk mode instead (§3.6). */
+export const CHART_ORDER: readonly ChartTab[] = ['power', 'cpTsr', 'alongBlade'];
+
+export function nextInCycle<T>(order: readonly T[], current: T): T {
+  const i = order.indexOf(current);
+  return order[(i + 1) % order.length] ?? current;
+}
+
 export function defaultUiState(): UiState {
   return {
     follow: 'all',
@@ -52,6 +77,7 @@ export function defaultUiState(): UiState {
     gusts: false,
     chart: 'power',
     sound: false,
+    volume: 0.7,
     tourStep: -1,
     paused: false,
     camChip: null,

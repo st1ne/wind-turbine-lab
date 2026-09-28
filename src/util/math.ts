@@ -27,3 +27,8 @@ export function mulberry32(seed: number): () => number {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
+
+/** Exponential approach toward `target` with time constant `tauS` (frame-rate independent). */
+export function approach(current: number, target: number, dt: number, tauS: number): number {
+  return current + (target - current) * (1 - Math.exp(-dt / Math.max(tauS, 1e-6)));
+}

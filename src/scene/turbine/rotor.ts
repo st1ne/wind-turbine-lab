@@ -35,11 +35,15 @@ export interface Rotor {
   readonly object3d: Group;
   readonly spin: Group;
   readonly hub: Hub;
+  /** cast hub body inside the spinner (clipped and capped in Cutaway) */
+  readonly hubBody: Mesh;
   /** per blade: the pitch group (blade tip anchor is at y = R in it) */
   readonly pitchGroups: readonly Group[];
   readonly bladeMaterials: readonly MeshStandardMaterial[];
   set(psiRad: number, pitchDeg: number, tipDeflectionM: number): void;
   setInternalsVisible(v: boolean): void;
+  /** fade the blades and root flanges (Ideal-disk mode, §10); 0 hides them */
+  setBladeOpacity(opacity: number): void;
   dispose(): void;
 }
 
@@ -86,6 +90,7 @@ function createHubInternals() {
   bodyGeo.scale(1.25, 1, 1);
   const castMat = makeMaterial({ color: '#6b737f', roughness: 0.6, metalness: 0.6 }, 'rotor');
   const body = new Mesh(bodyGeo, castMat);
+  body.name = 'hub-body';
   body.position.x = 0.15;
   const gearMat = makeMaterial({ color: PALETTE.brass, roughness: 0.3, metalness: 0.9 }, 'rotor');
   const raceMat = makeMaterial({ color: PALETTE.steel, roughness: 0.35, metalness: 0.8 }, 'rotor');
@@ -154,6 +159,7 @@ export function createRotor(): Rotor {
   spin.add(internals.body);
 
   const pitchGroups: Group[] = [];
+  const bladeParts: Mesh[] = [];
   const pinions: Mesh[] = [];
   const boltMatrices: Matrix4[] = [];
   for (let k = 0; k < BLADES; k++) {
@@ -166,7 +172,9 @@ export function createRotor(): Rotor {
     blade.castShadow = true;
     blade.receiveShadow = true;
     blade.name = `blade-${k + 1}`;
-    pitch.add(blade, new Mesh(flangeGeo, flangeMat));
+    const flange = new Mesh(flangeGeo, flangeMat);
+    pitch.add(blade, flange);
+    bladeParts.push(blade, flange);
     const ringGear = new Mesh(internals.ringGeo, internals.gearMat);
     ringGear.position.y = PITCH_BEARING_Y;
     internals.parts.push(ringGear);
@@ -197,6 +205,7 @@ export function createRotor(): Rotor {
     object3d: group,
     spin,
     hub,
+    hubBody: internals.body,
     pitchGroups,
     bladeMaterials: [bladeMat, bandMat],
     set(psiRad, pitchDeg, tipDeflectionM) {
@@ -210,6 +219,18 @@ export function createRotor(): Rotor {
     },
     setInternalsVisible(v) {
       for (const p of internals.parts) p.visible = v;
+    },
+    setBladeOpacity(opacity) {
+      const transparent = opacity < 0.999;
+      for (const m of [bladeMat, bandMat, flangeMat]) {
+        if (m.transparent !== transparent) {
+          m.transparent = transparent;
+          m.depthWrite = !transparent;
+          m.needsUpdate = true;
+        }
+        m.opacity = opacity;
+      }
+      for (const p of bladeParts) p.visible = opacity > 0.005;
     },
     dispose() {
       bladeGeo.dispose();

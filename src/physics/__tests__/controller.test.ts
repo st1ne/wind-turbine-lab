@@ -1,7 +1,7 @@
 /** Dynamic scenarios (TECH_SPEC §7.5), supervisor behaviour and NaN fuzzing (§19). */
 import { describe, expect, it } from 'vitest';
 import { cpAt, ctAt } from '@/physics/tables';
-import { createSim, type Sim } from '@/physics/sim';
+import { createSim, REFERENCE_SIM, type Sim } from '@/physics/sim';
 import type { SimInputs, SimSnapshot } from '@/physics/types';
 import { mulberry32 } from '@/util/math';
 
@@ -42,7 +42,7 @@ const storm = (t: number): number =>
   t < 20 ? 12 : t < 80 ? 12 + (t - 20) * 0.3 : t < 180 ? 30 : 15;
 
 describe('storm ramp, reference behaviour (§7.5)', () => {
-  const log = run(createSim({ holds: false, windRamp: false }), storm, 260, 10);
+  const log = run(createSim(REFERENCE_SIM), storm, 260, 10);
   // t, rpm, pitch, P (MW), T (kN), state
   const rows: [number, number, number, number, number, string][] = [
     [20, 12.1, 3.49, 5.0, 599, 'RUN'],
@@ -93,7 +93,7 @@ describe('storm ramp, app behaviour (holds + wind ramp)', () => {
 });
 
 describe('pitch locked at 0°, wind jump 12 → 22 m/s at t = 10 s', () => {
-  const sim = createSim({ holds: false, windRamp: false });
+  const sim = createSim(REFERENCE_SIM);
   const log = run(sim, (t) => (t < 10 ? 12 : 22), 26, 0.02, 0);
   it('trips on overspeed between t = 10 and 12 s', () => {
     const trip = log.find((r) => r.s.state === 'TRIP');
@@ -110,7 +110,12 @@ describe('pitch locked at 0°, wind jump 12 → 22 m/s at t = 10 s', () => {
     expect(Math.abs((tripped?.t ?? 0) - 22)).toBeLessThanOrEqual(1.5);
   });
   it('is latched until reset, then restarts', () => {
-    const inputs: SimInputs = { windTarget: 12, gusts: false, pitchLockDeg: null, idealDisk: false };
+    const inputs: SimInputs = {
+      windTarget: 12,
+      gusts: false,
+      pitchLockDeg: null,
+      idealDisk: false,
+    };
     for (let k = 0; k < 500; k++) sim.advance(0.02, inputs);
     expect(sim.snapshot().state).toBe('TRIPPED');
     sim.resetTrip();

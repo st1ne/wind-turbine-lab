@@ -5,6 +5,7 @@
  */
 import {
   MeshStandardMaterial,
+  type Material,
   type MeshStandardMaterialParameters,
   type WebGLProgramParametersWithUniforms,
 } from 'three';
@@ -50,6 +51,30 @@ export function makeMaterial(
   return m;
 }
 
+/** Object-space vertex displacement shared by a mesh and its helper passes (stencil caps). */
+export interface BendSpec {
+  readonly uniforms: Record<string, { value: number }>;
+  /** GLSL that may modify `transformed` (and read `position`) */
+  readonly displace: string;
+  /** program cache key for this displacement */
+  readonly key: string;
+}
+
+/** Patch any built-in material so its vertices are displaced per `bend` before projection. */
+export function applyBend(m: Material, bend: BendSpec, system?: SystemTag): void {
+  m.onBeforeCompile = (shader) => {
+    if (system) injectDim(shader, system);
+    Object.assign(shader.uniforms, bend.uniforms);
+    const decl = Object.keys(bend.uniforms)
+      .map((u) => `uniform float ${u};`)
+      .join('\n');
+    shader.vertexShader = shader.vertexShader
+      .replace('void main() {', `${decl}\nvoid main() {`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>\n${bend.displace}`);
+  };
+  m.customProgramCacheKey = () => bend.key;
+}
+
 /**
  * Material whose vertices are displaced in object space before projection (tower bending,
  * blade flap). `uniforms` are merged into the shader; `displace` is GLSL that may modify
@@ -63,17 +88,7 @@ export function makeBendMaterial(
   key: string,
 ): MeshStandardMaterial {
   const m = new MeshStandardMaterial(opts);
-  m.onBeforeCompile = (shader) => {
-    injectDim(shader, system);
-    Object.assign(shader.uniforms, uniforms);
-    const decl = Object.keys(uniforms)
-      .map((u) => `uniform float ${u};`)
-      .join('\n');
-    shader.vertexShader = shader.vertexShader
-      .replace('void main() {', `${decl}\nvoid main() {`)
-      .replace('#include <begin_vertex>', `#include <begin_vertex>\n${displace}`);
-  };
-  m.customProgramCacheKey = () => key;
+  applyBend(m, { uniforms, displace, key }, system);
   m.userData.system = system;
   return m;
 }

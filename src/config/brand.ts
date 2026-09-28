@@ -1,9 +1,13 @@
 /**
- * Brand placeholders (TECH_SPEC §3.1, §4.1). Replace these before launch; never reuse a
- * third-party brand.
+ * Brand (TECH_SPEC §3.1, §4.1). `name` and `domain` are left empty until the site has one:
+ * empty values are simply not rendered (no brand line, a plain "wind-turbine" plate). Never
+ * reuse a third-party brand.
  */
 export const BRAND = {
-  name: '{BRAND}',
-  domain: '{BRAND domain}',
-  handle: '{HANDLE}',
+  name: '',
+  domain: '',
+  handle: '@SolSt1ne',
+  handleUrl: 'https://x.com/SolSt1ne',
+  /** the Share button reposts the launch post on X */
+  shareUrl: 'https://x.com/intent/retweet?tweet_id=2104553334271103141',
 } as const;

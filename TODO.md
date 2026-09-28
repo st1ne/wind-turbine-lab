@@ -161,17 +161,17 @@ windings (∝ power) and brake disc (∝ brake heat). Instanced bolts. Internals
 
 ## Phase 5: UI shell  (≈ 3 h)
 
-- [ ] `ui/layout.ts`: regions per §3.1 (left column, top-right panel, bottom chips, bottom-right share/X)
-- [ ] Title block: overline, gradient headline "THE 59 % / LIMIT", intro text (§1.1)
-- [ ] `ui/segmented.ts` and `ui/slider.ts`: reusable components (keyboard accessible, aria-pressed / aria-valuetext)
-- [ ] `ui/controlPanel.ts`: Follow, Weather presets + wind slider with in / rated / out ticks and a gradient fill, Rotor, Pitch, View, the icon row, a conditional Reset pill (§3.4)
-- [ ] `ui/statCards.ts`: 3 cards with tweened tabular numbers, sub-lines, Beaufort names (§3.3)
-- [ ] `ui/explainer.ts` + `templates.ts` ★: regime templates from §3.5, bold numbers, colored concept words, throttle 150 ms, change detection
-- [ ] `ui/hotkeys.ts`: every key in §3.9, ignored while typing
-- [ ] `ui/help.ts`: overlay with hotkeys, assumptions (1:200 scale, simplified polars, 3 s cut-out hold, homes = 0.4 kW each), references
-- [ ] `ui/toast.ts`: small top-center toasts ("Link copied", "You found the limit: 59.3 %", "TRIP: overspeed")
-- [ ] `ui/loader.ts`: spinning turbine silhouette SVG, fades out on the first rendered frame
-- [ ] `state/store.ts` + `uiState.ts`: tiny observable store (§14.3)
+- [x] `ui/layout.ts`: regions per §3.1 (left column, top-right panel, bottom chips, bottom-right share/X)
+- [x] Title block: overline, gradient headline "THE 59 % / LIMIT", intro text (§1.1)
+- [x] `ui/segmented.ts` and `ui/slider.ts`: reusable components (keyboard accessible, aria-pressed / aria-valuetext)
+- [x] `ui/controlPanel.ts`: Follow, Weather presets + wind slider with in / rated / out ticks and a gradient fill, Rotor, Pitch, View, the icon row, a conditional Reset pill (§3.4)
+- [x] `ui/statCards.ts`: 3 cards with tweened tabular numbers, sub-lines, Beaufort names (§3.3)
+- [x] `ui/explainer.ts` + `templates.ts` ★: regime templates from §3.5, bold numbers, colored concept words, throttle 150 ms, change detection
+- [x] `ui/hotkeys.ts`: every key in §3.9, ignored while typing
+- [x] `ui/help.ts`: overlay with hotkeys, assumptions (1:200 scale, simplified polars, 3 s cut-out hold, homes = 0.4 kW each), references
+- [x] `ui/toast.ts`: small top-center toasts ("Link copied", "You found the limit: 59.3 %", "TRIP: overspeed")
+- [x] `ui/loader.ts`: spinning turbine silhouette SVG, fades out on the first rendered frame
+- [x] `state/store.ts` + `uiState.ts`: tiny observable store (§14.3)
 
 **Done when:** every control changes `uiState`, the sim reacts (wind, lock, time scale, pause), the stat cards and text update live, and hotkeys work.
 
@@ -188,11 +188,11 @@ No UI framework. Accessible markup (buttons, range inputs, aria attributes). Eng
 
 ## Phase 6: Wiring and time  (≈ 1.5 h)
 
-- [ ] `main.ts`: create store → sim → scene → UI → audio stub; subscribe the UI to the store; the scene reads snapshot + uiState each frame
-- [ ] Time scale ×1/×4/×10, pause, the V̄ ramp limiter on presets
-- [ ] `initSteady(V)` on load and on tour jumps / URL restore
-- [ ] Throttles: text 10 Hz, charts 30 Hz, labels every frame (projection), label occlusion every 6th frame
-- [ ] Dev overlay: live snapshot JSON (backtick key)
+- [x] `main.ts`: create store → sim → scene → UI → audio stub; subscribe the UI to the store; the scene reads snapshot + uiState each frame
+- [x] Time scale ×1/×4/×10, pause, the V̄ ramp limiter on presets
+- [x] `initSteady(V)` on load and on tour jumps / URL restore
+- [x] Throttles: text 10 Hz, charts 30 Hz (`util/throttle.ts`); labels every frame (projection) and occlusion every 6th frame land with the labels in Phase 12
+- [x] Dev overlay: live snapshot JSON (backtick key)
 
 **Done when:** Storm preset from Rated at ×1 goes RUN → SHUTDOWN → PARKED in ≈ 30 s sim time, matching the §7.5 table within tolerance, and the UI text follows every state.
 
@@ -200,12 +200,12 @@ No UI framework. Accessible markup (buttons, range inputs, aria attributes). Eng
 
 ## Phase 7: Views: Whole / Cutaway / Exploded  (≈ 3 h)
 
-- [ ] `scene/views.ts`: state machine with animated transitions (§8)
-- [ ] Cutaway: a clipping plane through the shaft axis on the camera side; animate the plane constant 0.9 s; clip the nacelle shell, spinner, hub and tower top 12 m
-- [ ] Stencil caps with a hatched dark fill and a 2 px amber edge (fallback: BackSide flat cap)
-- [ ] Exploded: components offset along the shaft axis with 60 ms stagger; the shell lifts +4 m and fades to 0.15; the rotor moves +6 m forward; dashed guide lines
-- [ ] Labels for internals appear only in Cutaway/Exploded
-- [ ] Hotkey V cycles; URL param `view`
+- [x] `scene/views.ts`: state machine with animated transitions (§8)
+- [x] Cutaway: a clipping plane through the shaft axis on the camera side; animate the plane constant 0.9 s; clip the nacelle shell, spinner, hub and tower top 12 m
+- [x] Stencil caps with a hatched dark fill and a 2 px amber edge (stencil works everywhere tested, so no BackSide fallback was built)
+- [x] Exploded: components offset along the shaft axis with 60 ms stagger; the shell lifts +4 m and fades to 0.15; the rotor moves +6 m forward; dashed guide lines
+- [x] Labels for internals appear only in Cutaway/Exploded (built in Phase 12)
+- [x] Hotkey V cycles (Phase 5); URL param `view` (Phase 13)
 
 **Done when:** switching views never pops, caps have no gaps from any angle, and the rotor and gears keep running during transitions.
 
@@ -220,15 +220,15 @@ eased offsets and dashed guide lines. Provide the BackSide fallback behind a fla
 
 ## Phase 8: Follow modes and FX ★  (≈ 4 h)
 
-- [ ] `follow.ts`: tag meshes by system; animate `uDim` (400 ms) per §9
-- [ ] `fx/smokeLines.ts` ★: 14 camera-facing ribbons (180 segments each), positions computed in the **vertex shader** from the actuator-disk formulas (§6.5), scrolling dashes via a precomputed travel-time attribute, color by u/V, downstream turbulence noise ∝ gusts/storm
-- [ ] `environment/smokeRake.ts`: comb of 14 nozzles at x = −2.5R with tiny emissive tips
-- [ ] Stream-tube outline (violet dashed) in Wind mode
-- [ ] `fx/tipVortices.ts`: 3 helices of radius r_tube(x), pitch p = u_conv·2π/ω, rotating with ψ, fading downstream
-- [ ] `fx/powerFlow.ts`: CatmullRom path blades → hub → LSS → gearbox → HSS → generator → converter → tower cable → transformer → pylon → village; amber pulses, count and speed ∝ P
-- [ ] `environment/village.ts`: 12 houses (instanced), window emissive, lit count = round(12·P/P_rated)
-- [ ] `fx/loadsViz.ts`: thrust arrow (coral, length ∝ T, flips when T < 0), tower bend ×25, blade flap ×2, stress color ramp on the tower, person figure 1.8 m
-- [ ] Labels per mode (§3.7 table)
+- [x] `follow.ts`: tag meshes by system; animate `uDim` (400 ms) per §9
+- [x] `fx/smokeLines.ts` ★: 14 camera-facing ribbons (180 segments each), positions computed in the **vertex shader** from the actuator-disk formulas (§6.5), scrolling dashes via a precomputed travel-time attribute, color by u/V, downstream turbulence noise ∝ gusts/storm
+- [x] `environment/smokeRake.ts`: comb of 14 nozzles at x = −2.5R with tiny emissive tips
+- [x] Stream-tube outline (violet dashed) in Wind mode
+- [x] `fx/tipVortices.ts`: 3 helices of radius r_tube(x), pitch p = u_conv·2π/ω, rotating with ψ, fading downstream
+- [x] `fx/powerFlow.ts`: CatmullRom path blades → hub → LSS → gearbox → HSS → generator → converter → tower cable → transformer → pylon → village; amber pulses, count and speed ∝ P
+- [x] `environment/village.ts`: 12 houses (instanced), window emissive, lit count = round(12·P/P_rated)
+- [x] `fx/loadsViz.ts`: thrust arrow (coral, length ∝ T, flips when T < 0), tower bend ×25, blade flap ×2, stress color ramp on the tower, person figure 1.8 m
+- [x] Labels per mode (§3.7 table) (built in Phase 12)
 
 **Done when:** in Wind mode at 8 m/s the smoke visibly slows and widens to about 1.25R in the wake. In Power mode the pulses stop when parked. In Loads mode the tower visibly straightens when the storm feathers the blades.
 
@@ -245,12 +245,12 @@ Add tip-vortex helices, the power-flow pulses to a village whose lights scale wi
 
 ## Phase 9: Betz disk mode ★  (≈ 2 h)
 
-- [ ] `betzDisk.ts`: violet emissive disk with a fresnel edge; blades fade out (500 ms)
-- [ ] Control-panel swap: wind slider → **Wake speed b** slider (0–1) while in Ideal mode
-- [ ] Smoke lines use a = (1 − b)/2; for a > 0.45 show "turbulent wake state" noise and text
-- [ ] Card 3 shows Cp(b); chart forced to the Betz tab
-- [ ] Sweet-spot detection |b − 1/3| < 0.015 → disk pulse, chart ring, toast once per entry
-- [ ] Exit → the loss waterfall row appears for 6 s (§3.6)
+- [x] `betzDisk.ts`: violet emissive disk with a fresnel edge; blades fade out (500 ms)
+- [x] Control-panel swap: wind slider → **Wake speed b** slider (0–1) while in Ideal mode
+- [x] Smoke lines use a = (1 − b)/2; for a > 0.45 show "turbulent wake state" noise and text
+- [x] Card 3 shows Cp(b); chart forced to the Betz tab
+- [x] Sweet-spot detection |b − 1/3| < 0.015 → disk pulse, chart ring, toast once per entry
+- [x] Exit → the loss waterfall row appears for 6 s (§3.6); also shown while in Ideal-disk mode, every step computed in `physics/losses.ts`
 
 **Done when:** a new user finds the 59.3 % peak by dragging within ~10 s, and the explanation text and chart agree at every b.
 
@@ -258,13 +258,13 @@ Add tip-vortex helices, the power-flow pulses to a village whose lights scale wi
 
 ## Phase 10: Charts  (≈ 2.5 h)
 
-- [ ] `charts/chartBase.ts`: DPR-aware canvas, axes, grid, mono tick labels, theme colors, redraw-on-change
-- [ ] `powerCurve.ts`: steady curve, Betz max, power in the wind, region bands (wait / catch / spill / hide), live dot + 6 s trail
-- [ ] `cpTsr.ts`: Cp(λ) at current pitch and 0°, Betz line 0.593, live dot
-- [ ] `alongBlade.ts`: α(r) live (per-element BEM ≤ 10 Hz), ghost at pitch 0, stall band 10–11°
-- [ ] `betzCurve.ts`: ½(1 + b)(1 − b²) with peak marker
-- [ ] `waterfall.ts`: 59.3 → 58.1 → 55.3 → 51.7 → 47.1 → 44.5
-- [ ] Tabs + key C; `environment/screens.ts` renders the stream-tube and Cp–λ plots onto the two wall monitors at 5 Hz
+- [x] `charts/chartBase.ts`: DPR-aware canvas, axes, grid, mono tick labels, theme colors, redraw-on-change
+- [x] `powerCurve.ts`: steady curve, Betz max, power in the wind, region bands (wait / catch / spill / hide), live dot + 6 s trail
+- [x] `cpTsr.ts`: Cp(λ) at current pitch and 0°, Betz line 0.593, live dot
+- [x] `alongBlade.ts`: α(r) live (per-element BEM ≤ 10 Hz), ghost at pitch 0, stall band 10–11°
+- [x] `betzCurve.ts`: ½(1 + b)(1 − b²) with peak marker
+- [x] `waterfall.ts`: 59.3 → 58.1 → 55.3 → 51.7 → 47.1 → 44.5 (done in Phase 9, computed: 59.3 → 58.1 → 55.2 → 51.4 → 47.1 → 44.4)
+- [x] Tabs + key C; `environment/screens.ts` renders the stream-tube and Cp–λ plots onto the two wall monitors at 5 Hz
 
 **Done when:** the chart dot moves continuously with the sim (dynamic, not steady), and the wall screens mirror the state.
 
@@ -272,14 +272,14 @@ Add tip-vortex helices, the power-flow pulses to a village whose lights scale wi
 
 ## Phase 11: Weather and storm  (≈ 2.5 h)
 
-- [ ] `stormLevel = smoothstep(18, 28, V̄)` in the snapshot
-- [ ] `fx/rain.ts`: instanced streaks (4k desktop / 1.5k mobile), wind slant, bench splashes
-- [ ] `environment/clouds.ts`: color lerp and bob; `fx/lightning.ts`: flash every 6–14 s when s > 0.8 (disabled under reduced motion)
-- [ ] `fx/trees.ts`: vertex-shader sway, bend ∝ V² (capped at 18°), gust flutter
-- [ ] Room light, fog and exposure lerps with s; fan LED shows `STORM`
-- [ ] `fx/beacon.ts`: rotating amber beacon (red on TRIP)
-- [ ] Vignette + grain pass when s > 0.5
-- [ ] Gusts toggle (G) with `±gust` badge on the WIND card
+- [x] `stormLevel = smoothstep(18, 28, V̄)` in the snapshot
+- [x] `fx/rain.ts`: instanced streaks (4k desktop / 1.5k mobile), wind slant, bench splashes
+- [x] `environment/clouds.ts`: color lerp and bob; `fx/lightning.ts`: flash every 6–14 s when s > 0.8 (disabled under reduced motion)
+- [x] `fx/trees.ts`: vertex-shader sway, bend ∝ V² (capped at 18°), gust flutter
+- [x] Room light, fog and exposure lerps with s; fan LED shows `STORM`
+- [x] `fx/beacon.ts`: rotating amber beacon (red on TRIP)
+- [x] Vignette + grain pass when s > 0.5
+- [x] Gusts toggle (G) with `±gust` badge on the WIND card (done in Phase 5)
 
 **Done when:** the Storm preset feels like a storm within 3 s, then eases back smoothly when the wind drops.
 
@@ -287,9 +287,9 @@ Add tip-vortex helices, the power-flow pulses to a village whose lights scale wi
 
 ## Phase 12: Labels  (≈ 2 h)
 
-- [ ] `scene/labels.ts`: DOM pool, projection each frame, behind-camera culling, occlusion raycasts on coarse proxies every 6th frame
-- [ ] Priority collision (greedy vertical nudge, max 9 visible), 200 ms fades
-- [ ] All labels in the §3.7 table with live values and follow/view visibility rules
+- [x] `scene/labels.ts`: DOM pool, projection each frame, behind-camera culling, occlusion raycasts on coarse proxies every 6th frame
+- [x] Priority collision (greedy vertical nudge, max 9 visible), 200 ms fades
+- [x] All labels in the §3.7 table with live values and follow/view visibility rules
 
 **Done when:** labels never jitter, never stack on top of each other, and never show through the tower.
 
@@ -297,11 +297,11 @@ Add tip-vortex helices, the power-flow pulses to a village whose lights scale wi
 
 ## Phase 13: Tour, URL, share, chips  (≈ 2 h)
 
-- [ ] `tour/steps.ts` + `tour.ts`: 6 steps (§12), caption bar with progress dots, pauses on user input, Resume pill
-- [ ] `ui/chips.ts`: 4 camera chips (§3.8) with fly-to and mode switches
-- [ ] `state/urlState.ts`: read/write query params (§17), debounced replaceState
-- [ ] `ui/share.ts`: Web Share API, else clipboard + toast
-- [ ] `{BRAND}` wordmark placeholder and `{HANDLE}` link in one config file
+- [x] `tour/steps.ts` + `tour.ts`: 6 steps (§12), caption bar with progress dots, pauses on user input, Resume pill
+- [x] `ui/chips.ts`: 4 camera chips (§3.8) with fly-to and mode switches
+- [x] `state/urlState.ts`: read/write query params (§17), debounced replaceState
+- [x] `ui/share.ts`: Web Share API, else clipboard + toast
+- [x] `{BRAND}` wordmark placeholder and `{HANDLE}` link in one config file (`config/brand.ts`; handle @SolSt1ne)
 
 **Done when:** a shared URL reproduces the view, wind, mode and camera chip; the tour runs start to finish in ≈ 50 s.
 
@@ -309,42 +309,45 @@ Add tip-vortex helices, the power-flow pulses to a village whose lights scale wi
 
 ## Phase 14: Audio  (≈ 1.5 h)
 
-- [ ] `audio/audio.ts`: WebAudio graph from §13 (whoosh at blade-pass frequency, generator hum at 2 × ω_g/2π, wind noise, rain, thunder, brake squeal), master limiter
-- [ ] Starts only after a user gesture; mute state in the URL; off by default
+- [x] `audio/audio.ts`: WebAudio graph from §13 (whoosh at blade-pass frequency, generator hum at 2 × ω_g/2π, wind noise, rain, thunder, brake squeal), master limiter
+- [x] Starts only after a user gesture; mute state in the URL; off by default
+
+---
+- [x] Volume slider next to the speaker (URL `vol`); moving it while muted turns the sound on
 
 ---
 
 ## Phase 15: Polish ★  (≈ 3 h)
 
-- [ ] Motion pass: every discrete change animates (§4.6); no physics easing
-- [ ] Bloom and exposure tuning so only intended parts glow (fan ring, aviation light, windows, generator, smoke)
-- [ ] Idle drift, camera chip flights, loader → first-frame dolly-in
-- [ ] Typography pass: tabular numbers, no layout shift, consistent units (`m/s`, `MW`, `kN`, `rpm`, `°`)
-- [ ] Copy pass: every template reads naturally at edge values (0 m/s, 35 m/s, b = 0, b = 1)
-- [ ] Compare side by side with the reference screenshots: panel spacing, pill style, label style, headline scale
+- [x] Motion pass: every discrete change animates (§4.6); no physics easing
+- [x] Bloom and exposure tuning so only intended parts glow (fan ring, aviation light, windows, generator, smoke)
+- [x] Idle drift, camera chip flights, loader → first-frame dolly-in
+- [x] Typography pass: tabular numbers, no layout shift, consistent units (`m/s`, `MW`, `kN`, `rpm`, `°`)
+- [x] Copy pass: every template reads naturally at edge values (0 m/s, 35 m/s, b = 0, b = 1)
+- [ ] Compare side by side with the reference screenshots: panel spacing, pill style, label style, headline scale (no reference screenshots in the repo; needs them)
 
 ---
 
 ## Phase 16: Performance, mobile, accessibility  (≈ 3 h)
 
-- [ ] Measure draw calls, triangles and frame time against the §15 budget; fix the top offenders
-- [ ] Adaptive DPR and half-resolution bloom (§15)
-- [ ] Mobile layout (§16): bottom sheet with peek, compact tiles, max 5 labels, touch gestures
-- [ ] `prefers-reduced-motion` behavior (§4.6)
-- [ ] Keyboard-only pass; screen-reader pass (aria-live throttled); contrast check
-- [ ] Test on Chrome, Safari, Firefox (desktop) and iOS Safari, Android Chrome
+- [x] Measure draw calls, triangles and frame time against the §15 budget; fix the top offenders (JS 308 KB gzip, draw calls 101/177/172, ≈ 117 k triangles; GPU frame time needs real hardware)
+- [x] Adaptive DPR and half-resolution bloom (§15)
+- [x] Mobile layout (§16): bottom sheet with peek, compact tiles, max 5 labels, touch gestures
+- [x] `prefers-reduced-motion` behavior (§4.6)
+- [x] Keyboard-only pass; screen-reader pass (aria-live throttled); contrast check
+- [ ] Test on Chrome, Safari, Firefox (desktop) and iOS Safari, Android Chrome (only headless Chromium is available here, incl. phone emulation)
 
 ---
 
 ## Phase 17: QA and launch  (≈ 2 h)
 
-- [ ] Run the §19 acceptance checklist, item by item
-- [ ] Fuzz test: 10k random inputs through `sim.step` and table lookups, no NaN or Infinity
-- [ ] Traceability review: every on-screen number maps to a physics function (make a table in README)
-- [ ] Lighthouse: Perf ≥ 85, A11y ≥ 95, BP ≥ 95
-- [ ] OG image 1200×630 (Storm + Cutaway), meta tags, favicon, `noscript` fallback
-- [ ] Deploy (Vercel / Netlify / Cloudflare Pages); optional single-file build via `vite-plugin-singlefile`
-- [ ] Record a 20–30 s screen capture for the launch post: Breeze → Betz peak → Storm feather → Cutaway power flow
+- [x] Run the §19 acceptance checklist, item by item (results in README; 6 and the Perf score need real GPU hardware)
+- [x] Fuzz test: 10k random inputs through `sim.step` and table lookups, no NaN or Infinity
+- [x] Traceability review: every on-screen number maps to a physics function (make a table in README)
+- [~] Lighthouse: Perf ≥ 85, A11y ≥ 95, BP ≥ 95 (A11y 100, BP 96; Perf 35–43 under SwiftShader, rerun on a GPU)
+- [x] OG image 1200×630 (Storm + Cutaway), meta tags, favicon, `noscript` fallback
+- [ ] Deploy (Vercel / Netlify / Cloudflare Pages); optional single-file build via `vite-plugin-singlefile` (Netlify, `netlify.toml`)
+- [ ] Record a 20–30 s screen capture for the launch post: Breeze → Betz peak → Storm feather → Cutaway power flow (needs a GPU machine)
 
 ---
 

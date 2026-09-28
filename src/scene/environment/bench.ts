@@ -29,7 +29,10 @@ export function createBench(): SceneModule<Group> {
 
   // Metal edge trim along the front and back.
   const trimGeo = new BoxGeometry(length + 0.02, B.thickness + 0.012, 0.012);
-  const trimMat = makeMaterial({ color: PALETTE.benchEdge, roughness: 0.35, metalness: 0.8 }, 'environment');
+  const trimMat = makeMaterial(
+    { color: PALETTE.benchEdge, roughness: 0.35, metalness: 0.8 },
+    'environment',
+  );
   const trims = new InstancedMesh(trimGeo, trimMat, 2);
   const m = new Matrix4();
   trims.setMatrixAt(0, m.makeTranslation(cx, B.topY - B.thickness / 2, B.depth / 2 + 0.006));
@@ -63,7 +66,7 @@ export function createBench(): SceneModule<Group> {
   ctx.fillStyle = '#f3dea0';
   ctx.textAlign = 'center';
   ctx.font = `600 58px ${UI_FONT}`;
-  ctx.fillText(`${BRAND.domain} / wind-turbine`, 512, 112);
+  ctx.fillText(BRAND.domain ? `${BRAND.domain} / wind-turbine` : 'wind-turbine', 512, 112);
   ctx.font = `500 42px ${MONO_FONT}`;
   ctx.fillText('5 MW class · 1:200', 512, 184);
   plate.texture.needsUpdate = true;

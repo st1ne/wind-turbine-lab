@@ -10,7 +10,7 @@
  * Fixed step dt = 1/120 s; step() accumulates real time × time scale with ≤ 40 sub-steps.
  * initSteady(V) starts at the steady operating point so the rotor never overshoots on load.
  */
-import { MAX_SUBSTEPS, SIM_DT_S } from '@/config/controller';
+import { MAX_SUBSTEPS, PITCH_FF_TAU_S, SIM_DT_S } from '@/config/controller';
 import {
   CUT_OUT_HOLD_S,
   ETA,
@@ -24,7 +24,9 @@ import { inductionFromCt } from '@/physics/actuatorDisk';
 import {
   generatorTorque,
   pitchCommand,
+  pitchCommandFF,
   pitchIntegralFor,
+  pitchIntegralForFF,
   rateLimitPitch,
   type PitchPi,
 } from '@/physics/controller';
@@ -51,7 +53,16 @@ export interface SimOptions {
   windRamp: boolean;
   /** gust phase seed */
   seed: number;
+  /** add the scheduled pitch for the measured wind to the PI (false = reference controller) */
+  pitchFeedForward: boolean;
 }
+
+/** Options that reproduce reference/wind_model_reference.py exactly (tests, §7.5). */
+export const REFERENCE_SIM: Partial<SimOptions> = {
+  holds: false,
+  windRamp: false,
+  pitchFeedForward: false,
+};
 
 export interface Sim {
   /** Advance by dtSim seconds of sim time in fixed steps (≤ 40 per call; backlog dropped). */
@@ -65,6 +76,11 @@ export interface Sim {
   resetTrip(): void;
 }
 
+/** Scheduled steady pitch for a measured wind (0 below cut-in). */
+function feedForwardPitch(V: number): number {
+  return V < V_CUT_IN ? 0 : scheduleAt(V).pitch;
+}
+
 /** Target rotor speed at V from the schedule; below cut-in, the optimal-TSR speed. */
 function targetOmega(V: number): number {
   if (V < V_CUT_IN) return (OPTIMUM.lambdaOpt * Math.max(V, 0)) / RADIUS_M;
@@ -72,7 +88,13 @@ function targetOmega(V: number): number {
 }
 
 export function createSim(options: Partial<SimOptions> = {}): Sim {
-  const opts: SimOptions = { holds: true, windRamp: true, seed: 1, ...options };
+  const opts: SimOptions = {
+    holds: true,
+    windRamp: true,
+    seed: 1,
+    pitchFeedForward: true,
+    ...options,
+  };
   const sup: Supervisor = createSupervisor(
     opts.holds
       ? { cutOutHoldS: CUT_OUT_HOLD_S, restartHoldS: RESTART_HOLD_S }
@@ -100,6 +122,15 @@ export function createSim(options: Partial<SimOptions> = {}): Sim {
   let ct = 0;
   let lambda = 0;
   let brakeOn = false;
+  /** low-passed measured wind for the pitch feed-forward, m/s */
+  let Vmeas = 8;
+
+  /** PI integral that reproduces the current pitch at zero speed error (bumpless). */
+  function bumplessIntegral(): number {
+    if (!opts.pitchFeedForward) return pitchIntegralFor(beta);
+    // the PI only supplies what the feed-forward doesn't
+    return pitchIntegralForFF(beta, feedForwardPitch(Vmeas));
+  }
 
   function advance(dt: number, inputs: SimInputs): void {
     idealDisk = inputs.idealDisk;
@@ -114,12 +145,15 @@ export function createSim(options: Partial<SimOptions> = {}): Sim {
     const wg = omega * GEAR_RATIO;
 
     // supervisory logic; the holds use the mean wind so gusts don't flicker the state
-    if (sup.preStep(Vmean, omega, targetOmega(Vmean), dt)) pi.integral = pitchIntegralFor(beta);
+    if (sup.preStep(Vmean, omega, targetOmega(Vmean), dt)) pi.integral = bumplessIntegral();
     const state = sup.state;
 
     qGen = generatorTorque(wg, beta, state, V < V_CUT_IN);
 
-    if (state === 'RUN' && inputs.pitchLockDeg === null) {
+    Vmeas += (V - Vmeas) * Math.min(dt / PITCH_FF_TAU_S, 1);
+    if (state === 'RUN' && inputs.pitchLockDeg === null && opts.pitchFeedForward) {
+      betaCmd = pitchCommandFF(pi, wg, beta, feedForwardPitch(Vmeas), dt);
+    } else if (state === 'RUN' && inputs.pitchLockDeg === null) {
       betaCmd = pitchCommand(pi, wg, beta, dt);
     } else if (state === 'RUN') {
       betaCmd = inputs.pitchLockDeg ?? 0;
@@ -144,6 +178,7 @@ export function createSim(options: Partial<SimOptions> = {}): Sim {
     const v = Math.max(Vinit, 0);
     Vmean = v;
     V = v;
+    Vmeas = v;
     brakeHeat = 0;
     accumulator = 0;
     let state: SupervisorState;
@@ -158,7 +193,7 @@ export function createSim(options: Partial<SimOptions> = {}): Sim {
     }
     betaCmd = beta;
     sup.force(state);
-    pi.integral = pitchIntegralFor(beta);
+    pi.integral = bumplessIntegral();
     // fill the snapshot outputs without advancing time
     lambda = (omega * RADIUS_M) / Math.max(V, 0.1);
     cp = cpAt(lambda, beta);
@@ -177,6 +212,8 @@ export function createSim(options: Partial<SimOptions> = {}): Sim {
     advance,
     initSteady,
     step(dtSim, inputs) {
+      // the regime flag follows the UI even while paused (dtSim = 0)
+      idealDisk = inputs.idealDisk;
       if (!(dtSim > 0)) return;
       accumulator += dtSim;
       let n = 0;
