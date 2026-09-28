@@ -25,7 +25,7 @@ export const UI_THEME: ChartTheme = {
   background: null,
   grid: 'rgba(255,255,255,0.06)',
   axis: 'rgba(255,255,255,0.18)',
-  tick: '#5d6479',
+  tick: '#7a8196',
   font: '9px "JetBrains Mono", ui-monospace, monospace',
   pad: { left: 30, right: 8, top: 14, bottom: 20 },
   lineScale: 1,

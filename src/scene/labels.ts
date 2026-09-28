@@ -20,6 +20,8 @@ import { approach } from '@/util/math';
 import { createThrottle, RATE_HZ } from '@/util/throttle';
 
 export const MAX_LABELS = 9;
+/** phones (< 900 px) show at most this many (§16) */
+export const MAX_LABELS_MOBILE = 5;
 /** UI elements labels must not hide under */
 const PANEL_SELECTOR = '.glass, .title-block, .x-link, .toast';
 export const OCCLUSION_EVERY = 6;
@@ -112,6 +114,17 @@ export function placeLabels(
   });
 }
 
+/** Rectangles just outside the viewport, so labels flip or nudge instead of running off it. */
+export function offscreen(w: number, h: number): { x: number; y: number; w: number; h: number }[] {
+  const big = 1e5;
+  return [
+    { x: w, y: -big, w: big, h: 2 * big },
+    { x: -big, y: -big, w: big, h: 2 * big },
+    { x: -big, y: -big, w: 2 * big, h: big },
+    { x: -big, y: h, w: 2 * big, h: big },
+  ];
+}
+
 export function createLabels(
   host: HTMLElement,
   camera: PerspectiveCamera,
@@ -157,6 +170,7 @@ export function createLabels(
   const text = createThrottle(RATE_HZ.text);
   // UI panels are obstacles: labels never slide underneath them (re-measured at 2 Hz)
   const measure = createThrottle(2);
+  const mobile = typeof matchMedia === 'function' ? matchMedia('(max-width: 899px)') : null;
   let panels: { x: number; y: number; w: number; h: number }[] = [];
   let frame = 0;
   let shownIds: string[] = [];
@@ -231,9 +245,9 @@ export function createLabels(
           w: c.slot.width + DOT_GAP_PX,
           h: c.slot.height,
         })),
-        MAX_LABELS,
+        mobile?.matches ? MAX_LABELS_MOBILE : MAX_LABELS,
         4,
-        panels,
+        [...panels, ...offscreen(w, h)],
       );
       const keep = new Set<Slot>();
       candidates.forEach((c, k) => {

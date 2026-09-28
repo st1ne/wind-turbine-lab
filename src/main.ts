@@ -12,6 +12,7 @@ import { createCamera, createControls } from '@/scene/camera';
 import { createCameraRig } from '@/scene/cameraRig';
 import { createLights, FOG_DENSITY } from '@/scene/lights';
 import type { SceneModule } from '@/scene/module';
+import { createAdaptiveQuality } from '@/scene/adaptive';
 import { createPost } from '@/scene/post';
 import { createRenderer, MAX_DPR } from '@/scene/renderer';
 import { createBench } from '@/scene/environment/bench';
@@ -60,6 +61,9 @@ const sim = createSim();
 sim.initSteady(store.get().windTarget);
 
 const renderer = createRenderer(canvas);
+// adaptive resolution (§15): pixel ratio and bloom size follow the measured frame time
+const adaptive = createAdaptiveQuality(Math.min(window.devicePixelRatio || 1, MAX_DPR));
+
 renderer.info.autoReset = false;
 const scene = new Scene();
 scene.background = new Color(THEME.bg);
@@ -158,7 +162,8 @@ const urlSync = installUrlSync(store);
 const shareBtn = h(
   'button',
   { type: 'button', class: 'share-btn glass', 'aria-label': 'Share this view' },
-  '↗ Share',
+  h('span', { 'aria-hidden': 'true' }, '↗'),
+  h('span', { class: 'share-label', 'aria-hidden': 'true' }, ' Share'),
 );
 shareBtn.addEventListener('click', () => void share(urlSync.flush()));
 ui.layout.corner.prepend(shareBtn);
@@ -183,6 +188,7 @@ if (import.meta.env.DEV) {
       controls,
       renderer,
       post,
+      adaptive,
       rig,
       store,
       turbine,
@@ -200,10 +206,10 @@ if (import.meta.env.DEV) {
 function resize(): void {
   const w = window.innerWidth;
   const h = window.innerHeight;
-  const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+  const { dpr, bloomScale } = adaptive.quality;
   renderer.setPixelRatio(dpr);
   renderer.setSize(w, h, false);
-  post.resize(w, h, dpr);
+  post.resize(w, h, dpr, bloomScale);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
   views.setResolution(w, h);
@@ -214,6 +220,7 @@ resize();
 let firstFrame = true;
 // Frame order (§14.4): sim fixed steps → tweens → scene → render → UI (throttled) → audio.
 const loop = createRafLoop((dt) => {
+  if (adaptive.frame(dt)) resize();
   bridge.frame(dt);
   const snapshot = sim.snapshot();
   const uiState = store.get();

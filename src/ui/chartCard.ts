@@ -49,13 +49,31 @@ export function createChartCard(store: Store<UiState>): ChartCard {
     return b;
   });
   const canvas = h('canvas', { class: 'chart-canvas', role: 'img' });
+  // 900–1279 px (§16): the card collapses to this button until opened
+  const toggle = h(
+    'button',
+    { type: 'button', class: 'chart-toggle', 'aria-expanded': 'false' },
+    'Chart',
+  );
   const el = h(
     'section',
     { class: 'chart-card glass', 'aria-label': 'Chart' },
-    h('header', { class: 'panel-head' }, tabs, keyHint('C')),
+    h('header', { class: 'panel-head' }, toggle, tabs, keyHint('C')),
     canvas,
   );
+  toggle.addEventListener('click', () => {
+    const open = !el.classList.contains('open');
+    el.classList.toggle('open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+    chart.resize(fitWidth(), CHART_SIZE.height, Math.min(window.devicePixelRatio || 1, 2));
+    redraw.force();
+  });
   const chart = createChartCanvas(canvas);
+  /** the canvas follows the card's inner width (narrow columns, the phone sheet) */
+  const fitWidth = (): number => {
+    const inner = el.clientWidth - 24;
+    return inner > 120 ? Math.min(inner, CHART_SIZE.width + 60) : CHART_SIZE.width;
+  };
   chart.resize(CHART_SIZE.width, CHART_SIZE.height, Math.min(window.devicePixelRatio || 1, 2));
 
   const redraw = createThrottle(RATE_HZ.charts);
@@ -66,7 +84,7 @@ export function createChartCard(store: Store<UiState>): ChartCard {
   return {
     el,
     resize(dpr) {
-      chart.resize(CHART_SIZE.width, CHART_SIZE.height, dpr);
+      chart.resize(fitWidth(), CHART_SIZE.height, dpr);
       redraw.force();
     },
     update(s, ui, dt, nowS) {
@@ -91,6 +109,7 @@ export function createChartCard(store: Store<UiState>): ChartCard {
         canvas.classList.add('fade-in');
       }
       if (!redraw.ready(dt)) return;
+      if (canvas.offsetParent === null) return; // collapsed or hidden: skip the drawing
       const view = views[ui.chart];
       const input = { s, ui, nowS };
       view.draw(chart, input);

@@ -330,12 +330,12 @@ Add tip-vortex helices, the power-flow pulses to a village whose lights scale wi
 
 ## Phase 16: Performance, mobile, accessibility  (≈ 3 h)
 
-- [ ] Measure draw calls, triangles and frame time against the §15 budget; fix the top offenders
-- [ ] Adaptive DPR and half-resolution bloom (§15)
-- [ ] Mobile layout (§16): bottom sheet with peek, compact tiles, max 5 labels, touch gestures
-- [ ] `prefers-reduced-motion` behavior (§4.6)
-- [ ] Keyboard-only pass; screen-reader pass (aria-live throttled); contrast check
-- [ ] Test on Chrome, Safari, Firefox (desktop) and iOS Safari, Android Chrome
+- [x] Measure draw calls, triangles and frame time against the §15 budget; fix the top offenders (JS 308 KB gzip, draw calls 101/177/172, ≈ 117 k triangles; GPU frame time needs real hardware)
+- [x] Adaptive DPR and half-resolution bloom (§15)
+- [x] Mobile layout (§16): bottom sheet with peek, compact tiles, max 5 labels, touch gestures
+- [x] `prefers-reduced-motion` behavior (§4.6)
+- [x] Keyboard-only pass; screen-reader pass (aria-live throttled); contrast check
+- [ ] Test on Chrome, Safari, Firefox (desktop) and iOS Safari, Android Chrome (only headless Chromium is available here, incl. phone emulation)
 
 ---
 

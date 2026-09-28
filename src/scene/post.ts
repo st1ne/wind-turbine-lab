@@ -67,7 +67,8 @@ export interface Post {
   render(dt: number): void;
   /** storm level s (0–1) and time for the grain */
   setStorm(s: number, timeS: number): void;
-  resize(width: number, height: number, dpr: number): void;
+  /** bloomScale 0.5 renders the bloom mips at half resolution (adaptive quality, §15) */
+  resize(width: number, height: number, dpr: number, bloomScale?: number): void;
   dispose(): void;
 }
 
@@ -116,9 +117,12 @@ export function createPost(renderer: WebGLRenderer, scene: Scene, camera: Camera
       stormU.uGrain.value = 0.02 * k;
       stormU.uTime.value = timeS % 100;
     },
-    resize(width, height, dpr) {
+    resize(width, height, dpr, bloomScale = 1) {
       composer.setPixelRatio(dpr);
       composer.setSize(width, height);
+      if (bloomScale < 1) {
+        bloom.setSize(Math.round(width * dpr * bloomScale), Math.round(height * dpr * bloomScale));
+      }
     },
     dispose() {
       composer.dispose();

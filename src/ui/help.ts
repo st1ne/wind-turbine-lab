@@ -111,6 +111,21 @@ export function createHelp(onClose: () => void): Help {
     if (e.key === 'Escape') {
       e.stopPropagation();
       onClose();
+      return;
+    }
+    // keep Tab inside the dialog while it is open
+    if (e.key === 'Tab') {
+      const focusable = [...dialog.querySelectorAll<HTMLElement>('button, a[href]')];
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
   });
 

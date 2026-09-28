@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_LABELS, overlaps, placeLabels } from '@/scene/labels';
+import { MAX_LABELS, offscreen, overlaps, placeLabels } from '@/scene/labels';
 
 const r = (x: number, y: number, w = 100, h = 20) => ({ x, y, w, h });
 
@@ -43,5 +43,13 @@ describe('label placement (§3.7)', () => {
       { dy: 0, flip: true },
     ]);
     expect(placeLabels([r(10, 100)], 9, 4, [{ x: -500, y: 0, w: 2000, h: 400 }])).toEqual([null]);
+  });
+});
+
+describe('viewport edges', () => {
+  it('a label near the right edge flips left instead of running off screen', () => {
+    expect(placeLabels([{ x: 950, y: 100, w: 100, h: 20 }], 9, 4, offscreen(1000, 800))).toEqual([
+      { dy: 0, flip: true },
+    ]);
   });
 });

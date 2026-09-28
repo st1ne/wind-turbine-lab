@@ -66,8 +66,8 @@ src/
 
 ## Status
 
-Phases 0–15 done (scaffold, physics core, scene shell, turbine exterior, nacelle internals, UI
-shell, wiring and time, Whole / Cutaway / Exploded views, Follow modes and FX, Betz disk mode, charts, weather and storm, 3D labels, tour, camera chips, URL state and sharing, sound, polish). Modules not built yet throw `not implemented`.
+Phases 0–16 done (scaffold, physics core, scene shell, turbine exterior, nacelle internals, UI
+shell, wiring and time, Whole / Cutaway / Exploded views, Follow modes and FX, Betz disk mode, charts, weather and storm, 3D labels, tour, camera chips, URL state and sharing, sound, polish, performance / mobile / accessibility). Modules not built yet throw `not implemented`.
 
 Dev helpers (dev server only): backtick toggles the stats/snapshot overlay; `window.__lab`
 exposes sim, bridge (`jumpTo(V)`), store, scene and camera. All hotkeys from TECH_SPEC §3.9 are live; press H for the
@@ -118,3 +118,10 @@ Polish (Phase 15): bloom threshold 1.1 instead of 0.82 (the white spinner's high
 into a halo; everything meant to glow has emissive intensity ≥ 3); numbers and units are joined
 by no-break spaces; the camera dollies in from a wide shot after the loader unless a link picks
 a camera chip.
+
+Responsive and accessibility (Phase 16): phones (< 900 px) get a bottom sheet with the controls,
+explanation, chart and waterfall; it peeks 100 px (the spec says 76) so the presets and a
+wind slider with 28 px finger-size thumbs both fit, and shows at most 5 labels. 900–1279 px
+collapse the chart to a button. Short desktop screens drop the intro paragraph. --text-dim is
+#7a8196 (4.9 : 1 on the panels; the spec's #5d6479 is 3.2 : 1). The pixel ratio adapts to the
+frame time (2 → 1.5 → 1.25 → 1, bloom at half resolution when stepped down).

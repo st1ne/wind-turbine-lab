@@ -52,6 +52,12 @@ const TIME_SCALES: readonly TimeScale[] = [1, 4, 10];
 /** Track position (%) of a wind speed, for the fill gradient stops. */
 const at = (v: number): string => `${fixed((v / WIND_MAX_M_S) * 100, 2)}%`;
 
+/** Row class names let the mobile sheet reorder rows (presets and wind first, §16). */
+function tagged(el: HTMLElement, cls: string): HTMLElement {
+  el.classList.add(cls);
+  return el;
+}
+
 function row(label: string, keys: string, ...content: HTMLElement[]): HTMLElement {
   return h(
     'div',
@@ -239,11 +245,11 @@ export function createControlPanel(store: Store<UiState>, actions: PanelActions)
   const el = h(
     'section',
     { class: 'control-panel glass', 'aria-label': 'Controls' },
-    row('Follow', '1 2 3 4', follow.el),
-    row('Weather', 'Q W E R', presets.el),
-    windRow,
-    trio,
-    icons,
+    tagged(row('Follow', '1 2 3 4', follow.el), 'row-follow'),
+    tagged(row('Weather', 'Q W E R', presets.el), 'row-weather'),
+    tagged(windRow, 'row-wind'),
+    tagged(trio, 'row-trio'),
+    tagged(icons, 'row-icons'),
   );
 
   // mirror the store
