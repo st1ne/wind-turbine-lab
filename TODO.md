@@ -341,13 +341,13 @@ Add tip-vortex helices, the power-flow pulses to a village whose lights scale wi
 
 ## Phase 17: QA and launch  (≈ 2 h)
 
-- [ ] Run the §19 acceptance checklist, item by item
-- [ ] Fuzz test: 10k random inputs through `sim.step` and table lookups, no NaN or Infinity
-- [ ] Traceability review: every on-screen number maps to a physics function (make a table in README)
-- [ ] Lighthouse: Perf ≥ 85, A11y ≥ 95, BP ≥ 95
-- [ ] OG image 1200×630 (Storm + Cutaway), meta tags, favicon, `noscript` fallback
-- [ ] Deploy (Vercel / Netlify / Cloudflare Pages); optional single-file build via `vite-plugin-singlefile`
-- [ ] Record a 20–30 s screen capture for the launch post: Breeze → Betz peak → Storm feather → Cutaway power flow
+- [x] Run the §19 acceptance checklist, item by item (results in README; 6 and the Perf score need real GPU hardware)
+- [x] Fuzz test: 10k random inputs through `sim.step` and table lookups, no NaN or Infinity
+- [x] Traceability review: every on-screen number maps to a physics function (make a table in README)
+- [~] Lighthouse: Perf ≥ 85, A11y ≥ 95, BP ≥ 95 (A11y 100, BP 96; Perf 35–43 under SwiftShader, rerun on a GPU)
+- [x] OG image 1200×630 (Storm + Cutaway), meta tags, favicon, `noscript` fallback
+- [ ] Deploy (Vercel / Netlify / Cloudflare Pages); optional single-file build via `vite-plugin-singlefile` (static `dist/` is ready, steps in README; needs a hosting account)
+- [ ] Record a 20–30 s screen capture for the launch post: Breeze → Betz peak → Storm feather → Cutaway power flow (needs a GPU machine)
 
 ---
 

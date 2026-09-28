@@ -66,8 +66,11 @@ src/
 
 ## Status
 
-Phases 0–16 done (scaffold, physics core, scene shell, turbine exterior, nacelle internals, UI
-shell, wiring and time, Whole / Cutaway / Exploded views, Follow modes and FX, Betz disk mode, charts, weather and storm, 3D labels, tour, camera chips, URL state and sharing, sound, polish, performance / mobile / accessibility). Modules not built yet throw `not implemented`.
+All 17 phases done (scaffold, physics core, scene shell, turbine exterior, nacelle internals, UI
+shell, wiring and time, Whole / Cutaway / Exploded views, Follow modes and FX, Betz disk mode,
+charts, weather and storm, 3D labels, tour, camera chips, URL state and sharing, sound, polish,
+performance / mobile / accessibility, QA and launch prep). Not done: the deploy itself and the
+launch screen capture (see [Launch](#launch)).
 
 Dev helpers (dev server only): backtick toggles the stats/snapshot overlay; `window.__lab`
 exposes sim, bridge (`jumpTo(V)`), store, scene and camera. All hotkeys from TECH_SPEC §3.9 are live; press H for the
@@ -125,3 +128,72 @@ wind slider with 28 px finger-size thumbs both fit, and shows at most 5 labels. 
 collapse the chart to a button. Short desktop screens drop the intro paragraph. --text-dim is
 #7a8196 (4.9 : 1 on the panels; the spec's #5d6479 is 3.2 : 1). The pixel ratio adapts to the
 frame time (2 → 1.5 → 1.25 → 1, bloom at half resolution when stepped down).
+
+## Every number on screen (TECH_SPEC §19.8)
+
+All values come from the sim snapshot (`physics/sim.ts`, fields in `physics/types.ts`) or a pure
+function in `src/physics`, and are formatted by `physics/format.ts`. Config constants live in
+`src/config`.
+
+| Where | Number | Source |
+|---|---|---|
+| Stat card Wind | V̄, Beaufort force and name | `snapshot.Vmean` (`physics/wind.ts` ramp), `beaufort()` (`physics/wind.ts`) |
+| Stat card Power | P, rpm, pitch; `parked` / `TRIP` sub-lines | `snapshot.Pel` (`physics/drivetrain.ts`), `snapshot.omega`, `snapshot.beta`, `snapshot.state` (`physics/supervisor.ts`) |
+| Stat card Captured | Cp (real rotor) or Cp(b) (Ideal disk), Betz max | `snapshot.cp` (`physics/tables.ts` lookup), `cpIdeal()` (`physics/actuatorDisk.ts`), `BETZ` (`config/turbine.ts`) |
+| Explanation text | wind power, λ, tip speed, Cp, % of Betz, P, thrust, pitch, rpm, runaway rpm and tip Mach, flat-blade thrust | `windPowerW`, `tipSpeedMs`, `runawayRpm`, `runawayTipMach`, `lockedFlatThrustN` (`physics/loads.ts`); `snapshot.lambda/cp/Pel/T/beta/omega`; `cpIdeal` for Betz mode; limits from `config/turbine.ts` and `config/controller.ts` (`ui/templates.ts`) |
+| Wind slider | V target, Beaufort | UI input; `beaufort()` |
+| b slider | wake ratio b | UI input (the sim uses `a = (1 − b)/2`, `physics/actuatorDisk.ts`) |
+| Chart: Power curve | curve, "in the wind" and Betz lines, live dot | `SCHEDULE` and `OPTIMUM` (`physics/tables.ts`), `windPowerW` × `BETZ`, `snapshot.V/Pel` |
+| Chart: Cp–λ | curve at the current pitch, dot | `cpAt(λ, β)` (`physics/tables.ts`), `snapshot.lambda/cp/beta` |
+| Chart: Along the blade | angle of attack per station | `spanwiseAlpha()` (`physics/bem.ts`), `STATIONS` (`physics/blade.ts`) |
+| Chart: Betz curve | Cp(b), 16/27 | `cpIdeal()`, `BETZ` |
+| Loss waterfall | 59.3 → … → 44.4 % | `lossWaterfall()` (`physics/losses.ts`) |
+| Labels: Upstream / At the rotor / Wake / Anemometer | V, V(1 − a), far-wake speed | `snapshot.V`, flow `a` (`snapshot.a` or `inductionFromB`), `axialVelocity()` (`physics/actuatorDisk.ts`) |
+| Label Blade tip | ωR in m/s and km/h | `tipSpeedMs()` |
+| Label Pitch | β | `snapshot.beta` |
+| Label Main shaft | rpm, low-speed-shaft torque | `snapshot.omega`, `lssTorqueNm(snapshot.Qgen)` (`physics/loads.ts`) |
+| Label Gearbox / Converter | 97 : 1, 690 V | `GEAR_RATIO`, `CONVERTER_VOLTAGE_V` (`config/turbine.ts`) |
+| Label Generator | generator rpm, P | `snapshot.omega × GEAR_RATIO`, `snapshot.Pel` |
+| Label Brake | ON / released | `snapshot.brakeOn` (`physics/supervisor.ts`) |
+| Label Thrust | T in kN and tonnes-force | `snapshot.T` (`physics/tables.ts` Ct), `G_M_S2` |
+| Label Sway / Base moment | tower-top deflection, base moment | `towerTopDeflectionM()`, `baseMomentNm()` (`physics/loads.ts`) |
+| Label Homes | homes powered | `homesPowered()` (`physics/loads.ts`) |
+| Label Person | 1.8 m | scale reference constant |
+| Wall screens | a, disk and wake speed ratios; Cp–λ with pitch | flow `a`; `cpAt`, `snapshot.beta` |
+| Canvas `aria-label` | V, P, rpm, pitch, regime | snapshot fields, `regimeTitle()` |
+| FX (no digits) | smoke speed and tube radius, pulse count and speed, tower stress, rotor blur, beacon, storm level | `tubeRadius`, `streamlineRadius` (`physics/actuatorDisk.ts`), `pulseCount/pulseSpeed(Pel)`, `baseMomentNm`, `snapshot.stormLevel/state` |
+| Sound (no digits) | hum pitch 2·ω_g/2π, whoosh ∝ (ωR)², hum ∝ P | `humFrequencyHz`, `whooshLevel`, `humLevel` (`audio/audio.ts`) from snapshot fields |
+
+## Acceptance (TECH_SPEC §19)
+
+| # | Criterion | Result |
+|---|---|---|
+| 1 | §7 vectors, storm ramp to PARKED, pitch-lock trip | `npm test`: passes (171 tests) |
+| 2 | Slider 0 → 35 → 0 is monotonic and glitch-free, no NaN; 10k fuzz | `src/acceptance.test.ts`: no power dip while the wind rises, no step > 0.25 MW within a supervisor state (RUN → SHUTDOWN disconnects the generator by design), 10,000 random states through the sim, templates and FX mappings stay finite; `physics/__tests__/controller.test.ts` fuzzes 10,000 `cpAt` / `ctAt` lookups and 10,000 sim steps |
+| 3 | Storm from Rated: edge-on in ≈ 30 s, beacon, brake glow, SHUTDOWN then PARKED text | `src/acceptance.test.ts`: β > 89.9° before 35 s, PARKED, amber beacon, brake heat > 0, titles in order, no power pulses |
+| 4 | Betz peak found by dragging, toast once per entry | checked in headless Chromium: the toast fires once per Ideal-disk entry however often b crosses 1/3 |
+| 5 | Views switch without popping, solid caps | checked in headless Chromium (eased `cut` / `explode` channels, stencil caps) |
+| 6 | 60 fps on the reference laptop (Whole, Follow All, Storm) | not measurable here: the container has no GPU (SwiftShader runs at ≈ 1.5 fps). The adaptive pixel ratio steps down on slow frames |
+| 7 | Lighthouse desktop: Perf ≥ 85, A11y ≥ 95, BP ≥ 95 | on the production build under SwiftShader: Accessibility 100, Best Practices 96, SEO 100, Performance 35–43. Perf is dominated by software WebGL (≈ 7 s of shader compilation and the PMREM pass on the CPU); rerun on real hardware. The only BP failure is a TLS error on Google Fonts caused by the sandbox proxy |
+| 8 | Every number traceable to physics | table above |
+| 9 | Copy and comments in English, spell-checked | reviewed |
+
+The slider sweep from a standing rotor is slow to produce power: at fine pitch a parked rotor
+sits in deep stall (λ ≈ 0), so it takes ≈ 90 s at 8 m/s to spin up. From the 3 m/s idle, or
+any preset, it reaches the operating point in 10–30 s.
+
+## Launch
+
+`npm run build` writes a static site to `dist/` (≈ 310 kB gzipped JS, fonts from Google Fonts).
+Any static host works; none is configured in this repository:
+
+- Cloudflare Pages / Netlify / Vercel: build command `npm run build`, output directory `dist`.
+- The app uses absolute asset paths, so serve it from the domain root (for a subpath such as
+  GitHub Pages, set `base` in `vite.config.ts`).
+- Once the domain is known, make `og:image` an absolute URL in `index.html` (link previews
+  need one) and fill in `BRAND.name` / `BRAND.domain` in `src/config/brand.ts` (empty values
+  are not rendered).
+- `public/og-image.jpg` (1200 × 630, Storm shutdown in Cutaway) was captured from the app; the
+  `noscript` fallback shows it too.
+- The 20–30 s launch screen capture (Breeze → Betz peak → Storm feather → Cutaway power flow)
+  needs a machine with a GPU.

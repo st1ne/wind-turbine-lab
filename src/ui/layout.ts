@@ -17,7 +17,7 @@ function titleBlock(): HTMLElement {
   return h(
     'header',
     { class: 'title-block' },
-    h('span', { class: 'brand mono' }, BRAND.name),
+    ...(BRAND.name ? [h('span', { class: 'brand mono' }, BRAND.name)] : []),
     h('p', { class: 'overline-lg' }, 'WIND TURBINE LAB'),
     h('h1', { class: 'headline' }, h('span', {}, 'THE 59 %'), h('span', {}, 'LIMIT')),
     h(
